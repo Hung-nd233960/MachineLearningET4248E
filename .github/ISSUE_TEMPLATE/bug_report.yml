@@ -1,0 +1,78 @@
+name: 🐛 Bug Report
+description: Report a bug or issue with the project
+title: "[Bug]: "
+labels: ["bug"]
+assignees:
+  - ""
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please fill out the details below.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "🐞 Describe the bug"
+      description: "A clear and concise description of the issue."
+      placeholder: "Explain what happened..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "📌 Steps to Reproduce"
+      description: "How can we reproduce this bug?"
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "✔️ Expected Behavior"
+      description: "What should have happened instead?"
+      placeholder: "Describe what you expected."
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: "🚨 Severity"
+      description: "How bad is this issue?"
+      options:
+        - "🟥 Critical – Breaks core functionality"
+        - "🟧 High – Major issue, but workaround exists"
+        - "🟨 Medium – Affects usability"
+        - "🟩 Low – Cosmetic, minor issue"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: "⏳ Urgency"
+      description: "How quickly should this be fixed?"
+      options:
+        - "🔥 Immediate – Blocks critical work"
+        - "⚡ High – Should be fixed soon"
+        - "⏳ Medium – Fix when possible"
+        - "🕰️ Low – Can be fixed later"
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "📜 Logs / Screenshots"
+      description: "If applicable, attach logs or screenshots."
+
+  - type: input
+    id: environment
+    attributes:
+      label: "🖥️ Environment"
+      description: "What system are you using?"
+      placeholder: "OS, browser, app version, etc."

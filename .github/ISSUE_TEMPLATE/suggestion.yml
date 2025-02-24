@@ -1,0 +1,37 @@
+name: 💡 Suggestion
+description: Share a general suggestion or idea
+title: "[Suggestion]: "
+labels: ["discussion"]
+assignees:
+  - ""
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea? Let’s discuss it!
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: "💡 Suggestion"
+      description: "What’s your idea?"
+      placeholder: "Explain your suggestion..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: "❓ Why do you think this would help?"
+      description: "Explain how this suggestion improves the project."
+      placeholder: "Why is this idea useful?"
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: "⏳ Urgency"
+      description: "How important is this suggestion?"
+      options:
+        - "⚡ High – Should be discussed soon"
+        - "⏳ Medium – Can be considered for future changes"
+        - "🕰️ Low – Just an idea for now"
