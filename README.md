@@ -46,9 +46,6 @@ We welcome contributions! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for
 - `develop` – Latest development changes.
 - Feature branches: `feature/your-feature-name`
 
-## 📄 License
-This project is licensed under [LICENSE_NAME]. See [LICENSE](LICENSE) for details.
-
 ## 🙌 Acknowledgments
 - Contributors
 - Third-party tools and libraries
