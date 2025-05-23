@@ -1,16 +1,41 @@
 import os
-from typing import List, Dict, Any
+from typing import List
 import pandas as pd
 
 
 
-def reconcilate(data_list: list[str], mode = "") -> str:
+def reconcilate(data_list: List[str], mode = "") -> str:
     pass
 
 def choose_test_data(scan_metadata: pd.DataFrame,
                      sample_number: int = 5,
-                     mode: str = "least_chosen") -> List[Dict[str, Any]]:
-    return None
+                     mode: str = "least_chosen") -> pd.DataFrame:
+    """
+    Choose a set of training data based on the specified mode.
+    
+    Args:
+        scan_metadata (pd.DataFrame): DataFrame containing scan metadata.
+        number (int): Number of training sets to choose.
+        mode (str): Mode for choosing the training data. Options are "least_chosen" or "random".
+    
+    Returns:
+        pd.Dataframe: List of chosen training entries as pandas DataFrame.
+    """
+    df = scan_metadata.copy()
+
+    if mode == "least_chosen":
+        df_filtered = df[(~df["true_irrelevance"].astype(bool)) &
+                         (~df["true_disquality"].astype(bool))]
+        df['num_ratings'] = pd.to_numeric(df['num_ratings'], errors='coerce')
+        df_filtered = df[df['num_ratings'] > 0]
+        df_sorted = df_filtered.sort_values(by='num_ratings', ascending=True)
+        df_unique = df_sorted.drop_duplicates(subset=['patient_id'], keep='first')
+        return df_unique.head(sample_number) # true sample number of least chosen
+
+    if mode == "random":
+        return df.sample(n=sample_number)
+    
+    raise ValueError("Invalid mode. Choose 'least_chosen' or 'random'.")
 
 def choose_train_data(scan_metadata: pd.DataFrame,
                       sample_number: int = 5,
@@ -24,7 +49,7 @@ def choose_train_data(scan_metadata: pd.DataFrame,
         mode (str): Mode for choosing the training data. Options are "least_chosen" or "random".
     
     Returns:
-        List[Dict[str, Any]]: List of chosen training entries as dictionaries.
+        pd.Dataframe: List of chosen training entries as pandas DataFrame.
     """
     df = scan_metadata.copy()
 
@@ -90,7 +115,8 @@ def train_data_prepare(data_path: str, chosen_data: pd.DataFrame,
 
     return df
 
-def test_data_prepare(data_path: str, chosen_data: pd.DataFrame, csv_export: bool = False) -> pd.DataFrame:
+def test_data_prepare(data_path: str, chosen_data: pd.DataFrame, 
+                      csv_export: bool = False) -> pd.DataFrame:
     """
     Prepare the test data by extracting image paths."""
     for _, row in chosen_data.iterrows():
@@ -108,6 +134,7 @@ def test_data_prepare(data_path: str, chosen_data: pd.DataFrame, csv_export: boo
             return df
         except Exception as e:
             print(f"Skipping {folder} due to error: {e}")
+        return None
 
     if csv_export:
         df.to_csv('test_images.csv', index=False)

@@ -1,4 +1,5 @@
 """Trainer class for training a PyTorch model on image data."""
+from typing import Optional
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from PIL import Image
@@ -12,6 +13,18 @@ from torchvision import transforms
 from utils.image_label_dataset import ImageLabelDataset
 
 class Trainer():
+    df_train: Optional[pd.DataFrame]
+    df_val: Optional[pd.DataFrame]
+    test_data: Optional[pd.DataFrame]
+    training_data: Optional[pd.DataFrame]
+    model: Optional[torch.nn.Module]
+    criterion: nn.Module
+    optimizer: Optional[optim.Optimizer]
+    transform: transforms.Compose
+    batch_size: int
+    num_epochs: int
+    num_classes: int
+    device: torch.device
     """
     A class to handle the training of a model using PyTorch."""
     def __init__(self, batch_size: int = 32, num_epochs: int = 10, num_classes: int = 3):

@@ -3,7 +3,7 @@ import os
 import streamlit as st
 from PIL import Image
 
-from backend import AppState, SetChooser
+from AppChooser import AppState, SetChooser
 
 
 def init_state():
