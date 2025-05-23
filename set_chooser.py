@@ -1,6 +1,6 @@
 import os
-import pandas as pd
 from typing import List
+import pandas as pd
 from utils.chooser import choose_train_data, choose_test_data
 from utils.image_set import ImageSet
 

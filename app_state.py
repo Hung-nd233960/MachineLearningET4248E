@@ -5,7 +5,7 @@ from utils.settings_loader import load_toml_config
 from utils.chooser import train_data_prepare, test_data_prepare
 from utils.image_set import ImageSet
 from utils.trainer import Trainer
-
+from set_chooser import SetChooser
 
 CONFIG_PATH = "config.toml"
 
