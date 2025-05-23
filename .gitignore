@@ -1,0 +1,7 @@
+.conda/
+.venv/
+.mypy_cache/
+data/
+.vscode/
+__pycache__/
+*.github/
