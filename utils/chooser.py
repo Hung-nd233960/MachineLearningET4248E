@@ -2,8 +2,6 @@ import os
 from typing import List
 import pandas as pd
 
-
-
 def reconcilate(data_list: List[str], mode = "") -> str:
     pass
 
@@ -57,7 +55,7 @@ def choose_train_data(scan_metadata: pd.DataFrame,
         df_filtered = df[(~df["true_irrelevance"].astype(bool)) &
                          (~df["true_disquality"].astype(bool))]
         df['num_ratings'] = pd.to_numeric(df['num_ratings'], errors='coerce')
-        df_filtered = df[df['num_ratings'] > 0]
+        df_filtered = df
         df_sorted = df_filtered.sort_values(by='num_ratings', ascending=True)
         df_unique = df_sorted.drop_duplicates(subset=['patient_id'], keep='first')
         return df_unique.head(sample_number) # true sample number of least chosen

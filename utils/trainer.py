@@ -3,6 +3,7 @@ from typing import Optional
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from PIL import Image
+
 import torch
 from torch.utils.data import DataLoader
 from torch import nn
@@ -29,6 +30,7 @@ class Trainer():
     A class to handle the training of a model using PyTorch."""
     def __init__(self, batch_size: int = 32, num_epochs: int = 10, num_classes: int = 3):
         
+      
         self.df_train: pd.DataFrame = None
         self.df_val: pd.DataFrame = None
         self.model: models = None

@@ -29,16 +29,19 @@ class SetChooser:
         image_sets = []
         for _, row in chosen_data.iterrows():
             folder_path = os.path.join(self.data_path, str(row['patient_id']), str(row['scan_type']))
+            temp_list = os.listdir(folder_path)
+            temp_list.sort()  # Sort the list of images
             s = ImageSet(folder = folder_path,
                          scan_type = str(row['scan_type']),
                          patient_id = str(row['patient_id']),
                          num_images = int(row['num_images']),
-                         image_list = os.listdir(folder_path),
+                         image_list = temp_list,
                          image_index = 0,
                          irrelevance = int(row['true_irrelevance']),
                          disquality = int(row['true_disquality']),
-                         patient_metadata= self.patient_metadata[
-                         self.patient_metadata['patient_id'] == str(row['patient_id'])].to_dict(orient='records'))
+                         patient_metadata = (self.patient_metadata[
+                         self.patient_metadata['patient_id'] == str(row['patient_id'])].to_dict(orient='records'))[0])
+            # [0] to get the first (and only) record, since we expect one patient_id per row
             image_sets.append(s)
         return image_sets
     
@@ -69,3 +72,4 @@ class SetChooser:
         """
         chosen_data = choose_test_data(self.scan_metadata, sample_number, mode)
         return self.dataframe_to_set(chosen_data)
+    

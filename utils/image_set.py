@@ -13,6 +13,4 @@ class ImageSet:
     disquality: int = 0
     opinion_basel: int = 1
     opinion_thalamus: int = 1
-    patient_metadata: Dict = field(default_factory=dict)
-
-
+    patient_metadata: Dict[str, int] = field(default_factory=dict)

@@ -3,7 +3,8 @@ import os
 import streamlit as st
 from PIL import Image
 
-from AppChooser import AppState, SetChooser
+from set_chooser import SetChooser
+from app_state import AppState
 
 
 def init_state():
@@ -25,12 +26,9 @@ app = st.session_state.app
 if app.page == "greeting":
     st.title("Welcome to MedFabric - Collaborative Intelligence")
     app.id = st.text_input("Enter your ID:")
-    if app.id == "1":
         if st.button("Configure"):
             app.page = "config"
             st.rerun()
-    elif app.id != "":
-        st.error("Invalid ID. Please enter a valid ID.")
 
 elif app.page == "config":
     st.title("Configuration Page")
