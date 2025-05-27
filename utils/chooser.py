@@ -2,8 +2,7 @@ import os
 from typing import List
 import pandas as pd
 
-def reconcilate(data_list: List[str], mode = "") -> str:
-    pass
+from utils.reconciliate import reconcilate
 
 def choose_test_data(scan_metadata: pd.DataFrame,
                      sample_number: int = 5,
