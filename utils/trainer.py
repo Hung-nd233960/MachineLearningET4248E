@@ -28,14 +28,14 @@ class Trainer():
     device: torch.device
     """
     A class to handle the training of a model using PyTorch."""
-    def __init__(self, batch_size: int = 32, num_epochs: int = 10, num_classes: int = 3):
+    def __init__(self, batch_size: int = 32, num_epochs: int = 1, num_classes: int = 3):
         
       
         self.df_train: pd.DataFrame = None
         self.df_val: pd.DataFrame = None
         self.model: models = None
         self.criterion = nn.CrossEntropyLoss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-4)
+        self.optimizer: Optional[optim.Adam] = None
         self.transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
@@ -55,9 +55,8 @@ class Trainer():
         self.training_data = self.training_data[self.training_data['label']
                                                 .isin(['None', 'BasalGanglia', 'Thalamus'])]
         # Split into train and validation sets
-        df_train, df_val = train_test_split(self.training_data, 
+        self.df_train, self.df_val = train_test_split(self.training_data, 
                                             test_size=0.2, stratify=self.training_data['label'], random_state=42)
-        return df_train, df_val
     
     def load_test_data(self, test_data: pd.DataFrame):
         """Load test data from a Dataframe."""
@@ -81,12 +80,12 @@ class Trainer():
 
     def train_init(self):
         """Initialize the training process by loading data and setting up the model."""
-        self.df_train, self.df_val = self.load_training_data()
         train_loader, val_loader, train_ds, val_ds = self.create_dataloaders(self.df_train, self.df_val)
         # --- Model (Pretrained ResNet) ---
-        self.model = models.resnet152(pretrained=True)
+        self.model = models.resnet34(pretrained=True)
         self.model.fc = nn.Linear(self.model.fc.in_features, self.num_classes)
         self.model = self.model.to(self.device)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-4)
         
         return train_loader, val_loader, train_ds, val_ds
         # --- Training ---
@@ -176,6 +175,19 @@ class Trainer():
                     })
 
         self.test_data = pd.DataFrame(results)
+        self.test_data.to_csv("test_results.csv", index=False)
+        print("Test results saved to 'test_results.csv'")
+        print(self.test_data.head())
         return self.test_data
-
-            
+    
+if __name__ == "__main__":
+    trainer = Trainer(batch_size=32, num_epochs=1, num_classes=3)
+    # Example usage:
+    # Load your training data into a DataFrame
+    # df_train = pd.read_csv('path_to_your_training_data.csv')
+    # trainer.load_training_data(df_train)
+    # trainer.train()
+    # Load your test data into a DataFrame
+    # df_test = pd.read_csv('path_to_your_test_data.csv')
+    # results = trainer.test(df_test)
+    # print(results.head())

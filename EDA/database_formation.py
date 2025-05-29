@@ -65,6 +65,6 @@ def database_formation(csv_file: str, export_csv=True):
 
 
 if __name__ == "__main__":
-    CSV_FILE = "image_metadata.csv"  # Replace with your actual file
+    CSV_FILE = "metadata/image_metadata.csv"  # Replace with your actual file
     database_formation(CSV_FILE)
 

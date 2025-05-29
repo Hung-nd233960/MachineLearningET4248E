@@ -17,13 +17,13 @@ def reconcilate(data_list: List[int], strategy: str = "mean") -> int:
     """
     if not data_list:
         raise ValueError("data_list must not be empty")
-    
+ 
     if strategy == "mean":
         return int(round(mean(data_list)))
-    
+
     elif strategy == "median":
         return int(round(median(data_list)))
-    
+   
     elif strategy == "mode":
         try:
             return mode(data_list)
@@ -34,15 +34,13 @@ def reconcilate(data_list: List[int], strategy: str = "mean") -> int:
             max_count = most_common[0][1]
             candidates = [k for k, v in most_common if v == max_count]
             return min(candidates)
-    
+
     elif strategy == "majority":
         count = Counter(data_list)
         most_common = count.most_common(1)[0]
         if most_common[1] > len(data_list) // 2:
             return most_common[0]
-        else:
-            return -1  # no majority
-    
+        return -1  # no majority
     else:
         raise ValueError(f"Unknown strategy '{strategy}'")
 
@@ -53,7 +51,7 @@ if __name__ == "__main__":
     print("Median:", reconcilate(data, "median"))
     print("Mode:", reconcilate(data, "mode"))
     print("Majority:", reconcilate(data, "majority"))
-    
+  
     # Test with empty list
     try:
         print(reconcilate([], "mean"))

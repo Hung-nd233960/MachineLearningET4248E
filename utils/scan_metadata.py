@@ -11,7 +11,7 @@ def add_static_columns(df: pd.DataFrame) -> pd.DataFrame:
     df["true_disquality"] = 0
     return df
 
-def more_doctor_columns_adder(df: pd.DataFrame, doctor_id: int = 5) -> pd.DataFrame:
+def more_doctor_columns_adder(df: pd.DataFrame, doctor_id: str) -> pd.DataFrame:
     """
     Adds more doctor opinion columns to the DataFrame.
     """
@@ -26,7 +26,6 @@ if __name__ == "__main__":
     # Example usage
     df = pd.read_csv("metadata/scan_metadata.csv")
     df = add_static_columns(df)
-    df = more_doctor_columns_adder(df)
     print(df.head())
     df.to_csv("metadata/scan_metadata.csv", index=False)
 

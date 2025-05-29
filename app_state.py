@@ -25,13 +25,14 @@ class AppState:
         self.patient_metadata_path: str = paths["patient_metadata_path"]    
         self.num_train_sets: int = 5
         self.num_test_sets: int = 5
-        self.training_initialized: bool = False
+        self.annotation_initialized: bool = False
         self.set_greeting()
         self.load_metadata(paths)
+        self.dialog: str = ""
+        self.testing_initialized: bool = False
         # from utils.trainer import Trainer
         # self.model_trainer: Optional[Trainer] = None
-        
-    
+  
     def set_greeting(self) -> None:
         """Set the current page to greeting."""
         self.logon: bool = False
@@ -46,16 +47,18 @@ class AppState:
         self.image_metadata: pd.DataFrame
         self.patient_metadata: pd.DataFrame
         self.scan_metadata: pd.DataFrame
+        self.training_initialized: bool = False
+        self.test_result: Optional[pd.DataFrame] = None
 
     
     def set_image_set(self) -> None:
-        """Initialize the current training and testing sets."""
-        self.current_training_sets: List[ImageSet] = [ImageSet() for _ in range(self.num_train_sets)]
+        """Initialize the current annotation and testing sets."""
+        self.current_annotation_sets: List[ImageSet] = [ImageSet() for _ in range(self.num_train_sets)]
         self.current_testing_sets: List[ImageSet] = [ImageSet() for _ in range(self.num_test_sets)]
 
-    def set_training_init(self) -> None:
-        """Initialize the training sets and set the current set."""
-        if not self.training_initialized:
+    def set_annotation_init(self) -> None:
+        """Initialize the annotation sets and set the current set."""
+        if not self.annotation_initialized:
             self.set_chooser = SetChooser(
                 self.patient_metadata,
                 self.scan_metadata,
@@ -64,9 +67,15 @@ class AppState:
                 num_test_sets=self.num_test_sets
             )
             self.set_image_set()
-            self.current_training_sets = self.set_chooser.choose_train_data(self.num_train_sets, "least_chosen")
-            self.current_set = self.current_training_sets[self.set_index]
-            self.training_initialized = True
+            self.current_annotation_sets = self.set_chooser.choose_annotation_data(self.num_train_sets, "least_chosen")
+            self.current_set = self.current_annotation_sets[self.set_index]
+            self.annotation_initialized = True
+    
+    def set_test_init(self) -> None:
+        test_data = self.set_chooser.choose_test_data(self.num_test_sets, "least_chosen")
+        self.current_testing_sets = self.set_chooser.dataframe_to_set(test_data)
+        self.test_dataframe = self.test_model_prepare(test_data)
+        self.set_index = 0
 
     def load_metadata(self, paths: Dict[str, str]) -> None:
         """
@@ -93,7 +102,7 @@ class AppState:
         if export_csv:
             self.scan_metadata.to_csv(self.scan_metadata_path, index=False)
 
-    def init_trainer(self, batch_size: int = 32, num_epochs: int = 10, num_classes: int = 3) -> None:
+    def init_trainer(self, batch_size: int = 32, num_epochs: int = 1, num_classes: int = 3) -> None:
         """
         Initialize the trainer with the specified parameters.
         
@@ -104,48 +113,56 @@ class AppState:
         """
         from utils.trainer import Trainer
         self.model_trainer: Trainer = Trainer(batch_size=batch_size, num_epochs=num_epochs, num_classes=num_classes)
-        training_data_df = self.set_chooser.choose_train_data(self.num_train_sets, "least_chosen")
+        training_data_df = self.set_chooser.choose_train_data(self.scan_metadata)
         training_data_image_paths = train_data_prepare(self.data_path, training_data_df)
         self.model_trainer.load_training_data(training_data_image_paths)
     
     def train_model(self) -> None:
         """Train the model using the initialized trainer."""
         self.model_trainer.train()
-    
-    def test_model_prepare(self) -> pd.DataFrame:
+
+    def choose_test_data(self) -> pd.DataFrame:
+        """
+        Choose the test data based on the set chooser's configuration.
+        
+        Returns:
+            pd.DataFrame: DataFrame with test data paths and labels.
+        """
+        test_data = self.set_chooser.choose_test_data(self.num_test_sets, "least_chosen")
+        return test_data
+
+    def test_model_prepare(self, test_data: pd.DataFrame) -> pd.DataFrame:
         """
         Prepare the test data for evaluation.
         
         Returns:
             pd.DataFrame: DataFrame with test data paths and labels.
         """
-        test_data = self.set_chooser.choose_test_data(self.num_test_sets, "least_chosen")
         test_df = test_data_prepare(self.data_path, test_data)
         return test_df
     
-    def test_model(self, test_data: pd.DataFrame) -> pd.DataFrame:
+    def test_data_set(self, test_data: pd.DataFrame) -> List[ImageSet]:
+        """
+        Convert the test data DataFrame to a list of ImageSet objects.
+        
+        Args:
+            test_data (pd.DataFrame): DataFrame with test data paths and labels.
+        
+        Returns:
+            List[ImageSet]: List of ImageSet objects for testing.
+        """
+        return self.set_chooser.dataframe_to_set(test_data)
+
+    def test_model(self, export_csv: bool = True) -> None:
         """
         Prepare the test data for evaluation.
         
         Args:
-            test_data (pd.DataFrame): DataFrame with a 'path' column for test image paths.
-        
+            export_csv (bool): Whether to export the test results to a CSV file.
         Returns:
-            pd.DataFrame: DataFrame with predictions.
+            None.
         """
-        return self.model_trainer.test(test_data)
-
-if __name__ == "__main__":
-    from utils.settings_loader import load_toml_config
-    config = load_toml_config(CONFIG_PATH)
-    app_state = AppState(config=config)
-    set_chooser = SetChooser(app_state.patient_metadata,
-                             app_state.scan_metadata,
-                             app_state.data_path)
-    train_sets = set_chooser.choose_train_data(sample_number=5, mode="least_chosen")
-    print("Training Sets:")
-    for s in train_sets:
-        print(f"Patient ID: {s.patient_id}, Scan Type: {s.scan_type}, Number of Images: {s.num_images}")
-        print(f"Image List: {s.image_list[:5]}...")  # Print first 5 images for brevity
-        print(f"Metadata: {s.patient_metadata}")
-        print(type(s.patient_metadata))
+        self.test_result = self.model_trainer.test(self.test_dataframe)
+        if export_csv:
+            self.test_result.to_csv("test_results.csv", index=False)
+        self.testing_initialized = True

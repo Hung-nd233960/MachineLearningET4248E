@@ -1,7 +1,7 @@
 import os
 from typing import List
 import pandas as pd
-from utils.chooser import choose_train_data, choose_test_data
+from utils.chooser import choose_annotation_data, choose_test_data, choose_train_data
 from utils.image_set import ImageSet
 
 class SetChooser:
@@ -45,7 +45,7 @@ class SetChooser:
             image_sets.append(s)
         return image_sets
     
-    def choose_train_data(self, sample_number: int = 5, mode: str = "least_chosen") -> List[ImageSet]:
+    def choose_annotation_data(self, sample_number: int = 5, mode: str = "least_chosen") -> List[ImageSet]:
         """
         Choose a set of training data based on the specified mode.
         
@@ -56,10 +56,23 @@ class SetChooser:
         Returns:
             List[ImageSet]: List of chosen training entries as ImageSet objects.
         """
-        chosen_data = choose_train_data(self.scan_metadata, sample_number, mode)
+        chosen_data = choose_annotation_data(self.scan_metadata, sample_number, mode)
         return self.dataframe_to_set(chosen_data)
     
-    def choose_test_data(self, sample_number: int = 5, mode: str = "least_chosen") -> List[ImageSet]:
+    def choose_train_data(self, metadata: pd.DataFrame, mode: str = "") -> pd.DataFrame:
+        """
+        Choose a set of training data based on the specified mode.
+        
+        Args:
+            metadata (pd.DataFrame): DataFrame containing scan metadata.
+            mode (str): Mode for choosing the training data. Options are "least_chosen" or "random".
+        
+        Returns:
+            pd.DataFrame: DataFrame of chosen training entries.
+        """
+        return choose_train_data(metadata, mode)
+    
+    def choose_test_data(self, sample_number: int = 5, mode: str = "least_chosen") -> pd.DataFrame:
         """
         Choose a set of testing data based on the specified mode.
         
@@ -68,8 +81,8 @@ class SetChooser:
             mode (str): Mode for choosing the testing data. Options are "least_chosen" or "random".
         
         Returns:
-            List[ImageSet]: List of chosen testing entries as ImageSet objects.
+            pd.Dataframe: List of chosen testing entries as ImageSet objects.
         """
-        chosen_data = choose_test_data(self.scan_metadata, sample_number, mode)
-        return self.dataframe_to_set(chosen_data)
+        return choose_test_data(self.scan_metadata, sample_number, mode)
+        
     

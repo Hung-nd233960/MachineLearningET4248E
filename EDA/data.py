@@ -64,6 +64,6 @@ def explore_ct_data(folder_path):
 
 
 # Example usage:
-folder_path = "archive"  # Update with the correct path
+folder_path = "data"  # Update with the correct path
 delete_bone_ct_folders(folder_path)
 explore_ct_data(folder_path)
