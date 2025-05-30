@@ -1,5 +1,5 @@
 from typing import Optional, List, Dict
-
+from enum import Enum, auto
 import pandas as pd
 from utils.chooser import train_data_prepare, test_data_prepare
 from utils.image_set import ImageSet
@@ -8,6 +8,24 @@ from set_chooser import SetChooser
 
 CONFIG_PATH = "config.toml"
 
+
+class Page(Enum):
+    GREETING = auto()
+    REGISTRATION = auto()
+    CONFIGURATION = auto()
+    TRAINING = auto()
+    TESTING = auto()
+
+VALID_TRANSITIONS = {
+    Page.GREETING: [Page.REGISTRATION, Page.CONFIGURATION],
+    Page.REGISTRATION: [Page.GREETING],
+    Page.CONFIGURATION: [Page.TRAINING],
+    Page.TRAINING: [Page.TESTING, Page.GREETING],
+    Page.TESTING: [Page.GREETING],
+}
+
+def can_transition(from_page: Page, to_page: Page, testing:bool = False) -> bool:
+    return (to_page in VALID_TRANSITIONS.get(from_page, []) and not testing)
 
 class AppState:
     def __init__(
@@ -36,11 +54,10 @@ class AppState:
     def set_greeting(self) -> None:
         """Set the current page to greeting."""
         self.logon: bool = False
-        self.page: str = "greeting"
+        self.page: Page = Page.GREETING
         self.set_index = 0
         self.current_set = None
         self.doctor_id: str = 0
-        self.page: str = "greeting"
         self.set_index: int = 0
         self.current_set: Optional[ImageSet] = None
         self.set_chooser: Optional["SetChooser"] = None
