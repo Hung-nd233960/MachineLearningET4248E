@@ -3,7 +3,6 @@ from app_state import AppState, Page, can_transition
 from utils.credential_manager import CredentialManager
 
 
-
 def registration(app: AppState, cm: CredentialManager) -> None:
     """Display the registration page."""
     if not cm:
@@ -13,7 +12,10 @@ def registration(app: AppState, cm: CredentialManager) -> None:
     username_input = st.text_input("Username:")
     password_input_1 = st.text_input("Password:", type="password")
     password_input_2 = st.text_input("Confirm Password:", type="password")
-
+    option = st.selectbox(
+    "Role:",
+    ["Verifier", "Labeler"]
+)
     if st.button("Register", key="register_button"):
         # Validate input
         if not username_input or not password_input_1 or not password_input_2:
@@ -22,7 +24,7 @@ def registration(app: AppState, cm: CredentialManager) -> None:
             st.error("Passwords do not match.")
         else:
             # Try adding user
-            success = cm.add_user(username_input, password_input_1)
+            success = cm.add_user(username_input, password_input_1, option)
             if success:
                 st.success(f"User '{username_input}' registered successfully!")
                 # Set app state to redirect to login next run

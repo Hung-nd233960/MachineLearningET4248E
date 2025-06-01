@@ -1,7 +1,9 @@
-[users.kmno4]
-uuid = "80cd1a22-220f-4746-8190-680cfb2e270b"
+[users.Verifier1]
+uuid = "aed5a331-853a-4ec8-bb0e-3f1725aaf0f2"
 password = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"
+role = "Verifier"
 
-[users.admin]
-uuid = "636a11b8-df93-4bad-923e-91deb049473f"
+[users.Labeler1]
+uuid = "c0ae869d-85f6-4fed-916e-8bf6a82729f5"
 password = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"
+role = "Labeler"

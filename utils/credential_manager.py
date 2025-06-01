@@ -12,7 +12,7 @@ from pydantic import ValidationError
 class User(BaseModel):
     id: UUID = Field(default_factory=uuid4)
     password: str
-
+    role: str = "Labeler"
 
 class CredentialManager:
     def __init__(self, toml_file: str = "users.toml") -> None:
@@ -40,6 +40,7 @@ class CredentialManager:
                 name: {
                     "uuid": str(user.id),
                     "password": user.password,
+                    "role": user.role,
                 }
                 for name, user in self.users.items()
             }
@@ -51,14 +52,14 @@ class CredentialManager:
     def _hash_password(self, password: str) -> str:
         return hashlib.sha256(password.encode()).hexdigest()
 
-    def add_user(self, username: str, password: str) -> bool:
+    def add_user(self, username: str, password: str, role: str) -> bool:
         """Add a new user with a hashed password."""
         if username in self.users:
             print(f"User '{username}' already exists.")
             return False
 
         hashed_pw = self._hash_password(password)
-        self.users[username] = User(password=hashed_pw)
+        self.users[username] = User(password=hashed_pw, role=role)
         self._save_users()
         print(f"User '{username}' added with ID {self.users[username].id}.")
         return True
@@ -85,6 +86,13 @@ class CredentialManager:
         if user:
             return user.id
         return None
+
+    def get_user_role(self, username: str) -> Optional[str]:
+        """Get the role of a user by username."""
+        user = self.users.get(username)
+        if user:
+            return user.role
+        return None
     
 
 
@@ -93,7 +101,8 @@ if __name__ == "__main__":
     print("Current users:", cm.list_users())
     username_input = input("Enter username to add: ")
     password_input = input("Enter password: ")
-    cm.add_user(username_input, password_input)
+    role_input = input("Enter role (default 'labeler'): ") or "labeler"
+    cm.add_user(username_input, password_input, role="labeler")
     print("Updated users:", cm.list_users())
     username_input = input("Enter username to verify: ")
     password_input = input("Enter password: ")

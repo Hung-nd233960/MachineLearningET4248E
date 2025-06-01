@@ -98,7 +98,7 @@ def testing(app: AppState) -> None:
             if app.current_set.disquality == 1:
                 st.warning(
                     "Marked as Low Quality")
-
+        
         # Row: Number inputs for regions
         st.markdown("### Therapeutic Markings")
         ccol1, ccol2 = st.columns([1, 1])
