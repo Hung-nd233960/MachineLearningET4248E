@@ -36,7 +36,8 @@ class SetChooser:
                          patient_id = str(row['patient_id']),
                          num_images = int(row['num_images']),
                          image_list = temp_list,
-                         image_index = 0,
+                         image_index_1 = 0,
+                         image_index_2 = 1, 
                          irrelevance = int(row['true_irrelevance']),
                          disquality = int(row['true_disquality']),
                          patient_metadata = (self.patient_metadata[

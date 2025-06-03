@@ -55,7 +55,6 @@ class AppState:
         """Set the current page to greeting."""
         self.logon: bool = False
         self.page: Page = Page.GREETING
-        self.set_index = 0
         self.current_set = None
         self.doctor_id: str = 0
         self.set_index: int = 0
@@ -128,7 +127,7 @@ class AppState:
             num_epochs (int): Number of epochs for training.
             num_classes (int): Number of classes for classification.
         """
-        from utils.trainer import Trainer
+        from trainer.trainer import Trainer
         self.model_trainer: Trainer = Trainer(batch_size=batch_size, num_epochs=num_epochs, num_classes=num_classes)
         training_data_df = self.set_chooser.choose_train_data(self.scan_metadata)
         training_data_image_paths = train_data_prepare(self.data_path, training_data_df)

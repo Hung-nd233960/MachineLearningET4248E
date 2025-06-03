@@ -1,5 +1,5 @@
+# pylint: disable = missing-module-docstring
 import streamlit as st
-from app_state import AppState
 
 @st.dialog("Confirm Set")
 def confirm_dialog():
@@ -15,4 +15,3 @@ def confirm_dialog():
         if st.button("No"):
             st.session_state.show_confirm_dialog = False
             st.rerun()
-
