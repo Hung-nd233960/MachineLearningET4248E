@@ -1,3 +1,4 @@
+from enum import Enum, auto
 import os
 import streamlit as st
 from PIL import Image
@@ -6,7 +7,12 @@ from app_state import AppState, Page, can_transition
 from utils.dialog import confirm_dialog
 from utils.diagnosis_df import diagnosis_df
 
-def annotation_screen(app: AppState) -> None:
+class AnnotateMode(Enum):
+    """Enumeration for the annotation mode."""
+    ANNOTATE = auto()
+    VERIFY = auto()
+
+def annotation_screen(app: AppState, mode: AnnotateMode) -> None:
     """Display the training phase screen."""
     st.title("Annotation Phase")            
     num_images = len(app.current_set.image_list)
@@ -73,6 +79,7 @@ def annotation_screen(app: AppState) -> None:
         with zcol2:
             st.write(f"Scan Type: {app.current_set.scan_type}")
         
+        acol1, acol2 = st.columns([1, 1])
         # Filter out unwanted keys
         metadata = {
             key: value
@@ -81,14 +88,31 @@ def annotation_screen(app: AppState) -> None:
         }
 
         df = diagnosis_df(metadata)
-        if "show_metadata" not in st.session_state:
-            st.session_state.show_metadata = False
-        if st.button("Toggle Patient Metadata", key="toggle_metadata"):
-            st.session_state.show_metadata = not st.session_state.show_metadata
+        with acol1:
+            if "show_metadata" not in st.session_state:
+                st.session_state.show_metadata = False
+            if st.button("Toggle Patient Metadata", key="toggle_metadata"):
+                st.session_state.show_metadata = not st.session_state.show_metadata
 
-        # Conditionally show the dataframe
+            # Conditionally show the dataframe
+            
+        with acol2:
+            if "show_labels" not in st.session_state:
+                st.session_state.show_labels = False
+            if st.button("Labeler's Opinions", key="toggle_labels"):
+                st.session_state.show_labels = not st.session_state.show_labels
+
         if st.session_state.show_metadata:
-            st.dataframe(df, use_container_width=True)
+                st.dataframe(df, use_container_width=True)
+                
+        if st.session_state.show_labels:
+            if app.current_set.labeler_opinion is not None:
+                st.dataframe(
+                    app.current_set.labeler_opinion,
+                    use_container_width=True,
+                )
+            else:
+                st.warning("No labeler's opinions available for this set.")
     
         st.markdown("### Technical Evaluation and Theraputic Markings")
         bcol1, bcol2, bcol3, bcol4 = st.columns([1, 1, 1, 1])
@@ -118,7 +142,6 @@ def annotation_screen(app: AppState) -> None:
             )
             app.current_set.opinion_basel = basel
 
-            
         with bcol4:
             thalamus = st.number_input(
                 "Thalamus Image:",
@@ -128,7 +151,6 @@ def annotation_screen(app: AppState) -> None:
             )
             app.current_set.opinion_thalamus = thalamus
 
-            
         ccol1, ccol2 = st.columns([1, 1])
         with ccol1:
             if st.button("Previous Set", key="prev_set"):
@@ -158,7 +180,15 @@ def annotation_screen(app: AppState) -> None:
             confirm_dialog()
 
         if st.session_state.get("confirmed", False):
-            if can_transition(app.page, Page.TRAINING):
-                app.page = Page.TRAINING
-                st.session_state.confirmed = False  # reset
-                st.rerun()
+            if mode == AnnotateMode.ANNOTATE:
+                if can_transition(app.page, Page.GREETING):
+                    app.update_scan_metadata(app.current_annotation_sets)
+                    app.page = Page.GREETING
+                    st.session_state.confirmed = False  # reset
+                    st.rerun()
+            elif mode == AnnotateMode.VERIFY:
+                if can_transition(app.page, Page.TESTING):
+                    app.update_scan_metadata(app.current_annotation_sets)
+                    app.page = Page.TESTING
+                    st.session_state.confirmed = False
+                    st.rerun()

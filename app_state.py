@@ -2,6 +2,7 @@ from typing import Optional, List, Dict
 from enum import Enum, auto
 import pandas as pd
 from utils.chooser import train_data_prepare, test_data_prepare
+from utils.credential_manager import CredentialManager
 from utils.image_set import ImageSet
 
 from set_chooser import SetChooser
@@ -13,14 +14,16 @@ class Page(Enum):
     GREETING = auto()
     REGISTRATION = auto()
     CONFIGURATION = auto()
-    TRAINING = auto()
+    ANNOTATION = auto()
+    VERIFICATION = auto()
     TESTING = auto()
 
 VALID_TRANSITIONS = {
     Page.GREETING: [Page.REGISTRATION, Page.CONFIGURATION],
     Page.REGISTRATION: [Page.GREETING],
-    Page.CONFIGURATION: [Page.TRAINING],
-    Page.TRAINING: [Page.TESTING, Page.GREETING],
+    Page.CONFIGURATION: [Page.ANNOTATION],
+    Page.ANNOTATION: [Page.GREETING],
+    Page.VERIFICATION: [Page.GREETING, Page.TESTING],
     Page.TESTING: [Page.GREETING],
 }
 
@@ -50,16 +53,21 @@ class AppState:
         self.testing_initialized: bool = False
         # from utils.trainer import Trainer
         # self.model_trainer: Optional[Trainer] = None
-  
+    
+    def set_credential_manager(self, credential_manager: CredentialManager) -> None:
+        """Set the credential manager for the application."""
+        self.credential_manager = credential_manager
+        
     def set_greeting(self) -> None:
         """Set the current page to greeting."""
         self.logon: bool = False
         self.page: Page = Page.GREETING
         self.current_set = None
         self.doctor_id: str = 0
+        self.doctor_role: str = "verifier"
         self.set_index: int = 0
         self.current_set: Optional[ImageSet] = None
-        self.set_chooser: Optional["SetChooser"] = None
+        self.set_chooser: Optional[SetChooser] = None
         self.image_metadata: pd.DataFrame
         self.patient_metadata: pd.DataFrame
         self.scan_metadata: pd.DataFrame
@@ -78,6 +86,7 @@ class AppState:
             self.set_chooser = SetChooser(
                 self.patient_metadata,
                 self.scan_metadata,
+                self.credential_manager,
                 self.data_path,
                 num_train_sets=self.num_train_sets,
                 num_test_sets=self.num_test_sets
@@ -86,7 +95,22 @@ class AppState:
             self.current_annotation_sets = self.set_chooser.choose_annotation_data(self.num_train_sets, "least_chosen")
             self.current_set = self.current_annotation_sets[self.set_index]
             self.annotation_initialized = True
-    
+
+    def set_verification_init(self) -> None:
+        """Initialize the verification sets."""
+        if not self.annotation_initialized:
+            self.set_chooser = SetChooser(
+                self.patient_metadata,
+                self.scan_metadata,
+                self.credential_manager,
+                self.data_path,
+                num_train_sets=self.num_train_sets,
+                num_test_sets=self.num_test_sets
+            )
+            self.current_annotation_sets = self.set_chooser.choose_annotation_data(self.num_train_sets, "override")
+            self.current_set = self.current_annotation_sets[self.set_index]
+            self.annotation_initialized = True
+
     def set_test_init(self) -> None:
         test_data = self.set_chooser.choose_test_data(self.num_test_sets, "least_chosen")
         self.current_testing_sets = self.set_chooser.dataframe_to_set(test_data)
@@ -111,10 +135,11 @@ class AppState:
             condition = (self.scan_metadata["patient_id"] == s.patient_id) & (self.scan_metadata["scan_type"] == s.scan_type)
             self.scan_metadata.loc[condition, "num_ratings"] += 1
             self.scan_metadata.loc[condition, ["true_irrelevance", "true_disquality"]] = [s.irrelevance, s.disquality]
-            self.scan_metadata.loc[condition, f"opinion_basel_doctor{self.doctor_id}"] = s.opinion_basel
-            self.scan_metadata.loc[condition, f"opinion_thalamus_doctor{self.doctor_id}"] = s.opinion_thalamus
-            self.scan_metadata.loc[condition, f"opinion_irrelevance_doctor{self.doctor_id}"] = s.irrelevance
-            self.scan_metadata.loc[condition, f"opinion_quality_doctor{self.doctor_id}"] = s.disquality
+            self.scan_metadata.loc[condition, f"opinion_basel_{self.doctor_id}_{self.doctor_role}"] = s.opinion_basel
+            self.scan_metadata.loc[condition, f"opinion_thalamus_{self.doctor_id}_{self.doctor_role}"] = s.opinion_thalamus
+            self.scan_metadata.loc[condition, f"opinion_irrelevance_{self.doctor_id}_{self.doctor_role}"] = s.irrelevance
+            self.scan_metadata.loc[condition, f"opinion_quality_{self.doctor_id}_{self.doctor_role}"] = s.disquality
+
         if export_csv:
             self.scan_metadata.to_csv(self.scan_metadata_path, index=False)
 

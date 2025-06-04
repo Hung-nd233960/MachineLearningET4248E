@@ -59,7 +59,7 @@ class CredentialManager:
             return False
 
         hashed_pw = self._hash_password(password)
-        self.users[username] = User(password=hashed_pw, role=role)
+        self.users[username] = User(password=hashed_pw, role=role.lower())
         self._save_users()
         print(f"User '{username}' added with ID {self.users[username].id}.")
         return True
@@ -74,13 +74,12 @@ class CredentialManager:
     def list_users(self) -> List[str]:
         """List all usernames in the credential manager by keys."""
         return list(self.users.keys())
-    
+
     def reset(self) -> None:
         """Reloads user data from the TOML file, discarding current state."""
         self.users = self._load_users()
 
     def get_user_id(self, username: str) -> Optional[UUID]:
-
         """Get the UUID of a user by username."""
         user = self.users.get(username)
         if user:
@@ -94,8 +93,13 @@ class CredentialManager:
             return user.role
         return None
     
-
-
+    def get_username_by_id(self, user_id: UUID) -> Optional[str]:
+        """Get the username by user ID."""
+        for username, user in self.users.items():
+            if user.id == user_id:
+                return username
+        return None
+    
 if __name__ == "__main__":
     cm = CredentialManager()
     print("Current users:", cm.list_users())

@@ -16,6 +16,7 @@ def greeting(app: AppState, cm: CredentialManager) -> None:
         else:
             if cm.verify_user(username_input, password_input):
                 app.doctor_id = cm.get_user_id(username_input)
+                app.doctor_role = cm.get_user_role(app.doctor_id)
                 st.success(f"Welcome back, {username_input}!")
                 print(f"Doctor ID: {app.doctor_id}")
                 app.logon = True

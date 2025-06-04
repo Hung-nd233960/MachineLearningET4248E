@@ -8,7 +8,7 @@ from app_state import AppState, Page, can_transition
 def testing(app: AppState) -> None:
     """Display the testing phase screen."""
     if app.testing_initialized is False:
-        app.update_scan_metadata(app.current_annotation_sets)
+        
         app.init_trainer()
         app.train_model()
         app.set_test_init()

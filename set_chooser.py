@@ -1,7 +1,8 @@
 import os
 from typing import List
 import pandas as pd
-from utils.chooser import choose_annotation_data, choose_test_data, choose_train_data
+from utils.chooser import choose_annotation_data, choose_test_data, choose_train_data, extract_labeler_opinions_from_row
+from utils.credential_manager import CredentialManager
 from utils.image_set import ImageSet
 
 class SetChooser:
@@ -10,6 +11,7 @@ class SetChooser:
     def __init__(self,
                  patient_metadata: pd.DataFrame,
                  scan_metadata: pd.DataFrame,
+                 credential_manager: CredentialManager,
                  data_path: str,
                  num_train_sets: int = 5,
                  num_test_sets: int = 5) -> None:
@@ -21,6 +23,7 @@ class SetChooser:
         self.num_train_sets = num_train_sets
         self.num_test_sets = num_test_sets
         self.data_path = data_path
+        self.credential_manager = credential_manager
 
     def dataframe_to_set(self, chosen_data: pd.DataFrame) -> List[ImageSet]:
         """
@@ -36,6 +39,7 @@ class SetChooser:
                          patient_id = str(row['patient_id']),
                          num_images = int(row['num_images']),
                          image_list = temp_list,
+                         labeler_opinion= extract_labeler_opinions_from_row(row, self.credential_manager),
                          image_index_1 = 0,
                          image_index_2 = 1, 
                          irrelevance = int(row['true_irrelevance']),
@@ -45,7 +49,7 @@ class SetChooser:
             # [0] to get the first (and only) record, since we expect one patient_id per row
             image_sets.append(s)
         return image_sets
-    
+
     def choose_annotation_data(self, sample_number: int = 5, mode: str = "least_chosen") -> List[ImageSet]:
         """
         Choose a set of training data based on the specified mode.
