@@ -11,6 +11,6 @@ def oversample_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 def undersample_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     min_count = df['label'].value_counts().min()
     return pd.concat([
-        resample(df[df['label'] == label], replace=False, n_samples=min_count, random_state=42)
+        resample(df[df['label'] == label], replace=True, n_samples=min_count, random_state=42)
         for label in df['label'].unique()
     ])
