@@ -68,7 +68,7 @@ class Trainer():
 
         # Filter relevant labels
         self.training_data = self.training_data[
-        self.training_data['label'].isin(['None', 'BasalGanglia', 'Thalamus'])
+        self.training_data['label'].isin(['None', 'BasalGanglia', 'CoronaRadiata'])
         ]
 
         # Split FIRST to preserve natural distribution in validation
@@ -94,7 +94,7 @@ class Trainer():
         """Create DataLoader objects for training and validation datasets.
         One problem in augmentation is augmentation leakage, if we only augment the minority class,
           the model will not learn to generalize well."""
-        label_to_idx = {label: i for i, label in enumerate(['None', 'BasalGanglia', 'Thalamus'])}
+        label_to_idx = {label: i for i, label in enumerate(['None', 'BasalGanglia', 'CoronaRadiata'])}
 
         # Create datasets
         train_ds = ImageLabelDataset(df_train, transform=self.train_transform, label_to_idx=label_to_idx)
@@ -207,7 +207,7 @@ class Trainer():
             if preds_filtered:
                 print("            → Classification Report (excluding inconclusive):")
                 print(classification_report(labels_filtered, preds_filtered,
-                                            target_names=['None', 'BasalGanglia', 'Thalamus']))
+                                            target_names=['None', 'BasalGanglia', 'CoronaRadiata']))
                 print("            → Confusion Matrix:")
                 print(confusion_matrix(labels_filtered, preds_filtered))
             else:
@@ -248,7 +248,7 @@ class Trainer():
                         **row,  # Original row data
                         'prob_None': float(probs[0]) * 100,
                         'prob_BasalGanglia': float(probs[1]) * 100,
-                        'prob_Thalamus': float(probs[2]) * 100
+                        'prob_CoronaRadiata': float(probs[2]) * 100
                     })
 
                 except Exception as e:
@@ -258,7 +258,7 @@ class Trainer():
                         **row,
                         'prob_None': 0.0,
                         'prob_BasalGanglia': 0.0,
-                        'prob_Thalamus': 0.0
+                        'prob_CoronaRadiata': 0.0
                     })
 
         self.test_data = pd.DataFrame(results)

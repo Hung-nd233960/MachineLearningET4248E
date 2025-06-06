@@ -141,7 +141,7 @@ def train_data_prepare(data_path: str, chosen_data: pd.DataFrame,
                   and pd.notna(row[col]) and col.endswith("_verifier")]
 
             thal_opinions = [int(row[col]) - 1 for col in row.index
-                 if col.startswith("opinion_thalamus_") 
+                 if col.startswith("opinion_corona_") 
                  and pd.notna(row[col]) and col.endswith("_verifier")]
             ### WARNING: MAY IMPLEMENT A NEW FUNCTION TO RECONCILATE
             idx_basel = reconcilate(basel_opinions)
@@ -151,7 +151,7 @@ def train_data_prepare(data_path: str, chosen_data: pd.DataFrame,
                 if i == idx_basel:
                     label = 'BasalGanglia'
                 elif i == idx_thal:
-                    label = 'Thalamus'
+                    label = 'CoronaRadiata'
                 else:
                     label = 'None'
                 image_label_pairs.append((img_path, label))
@@ -213,7 +213,7 @@ def extract_labeler_opinions_from_row(row: pd.Series,
     ----------
     row : pd.Series
         A single row from the scan metadata DataFrame, containing opinion columns like
-        'opinion_basel_<uuid>_labeler', 'opinion_thalamus_<uuid>_labeler', etc.
+        'opinion_basel_<uuid>_labeler', 'opinion_corona_<uuid>_labeler', etc.
 
     cm : object
         An object that has a method `get_username(uuid: str) -> str`, 
@@ -227,7 +227,7 @@ def extract_labeler_opinions_from_row(row: pd.Series,
             - IrrelevantOpinion
             - IrrelevanceOpinion
             - BasalOpinion
-            - ThalamusOpinion
+            - CoronaOpinion
         If there are no valid (non-null) labeler opinions in the row, returns None.
     """
     # Step 1: Find all keys in the row that end with "_labeler"
@@ -264,7 +264,7 @@ def extract_labeler_opinions_from_row(row: pd.Series,
             'irrelevance': 'IrrelevanceOpinion',
             'disquality': 'DisqualityOpinion',
             'basel': 'BasalOpinion',
-            'thalamus': 'ThalamusOpinion'
+            'corona': 'CoronaOpinion'
         }.get(opinion_type, opinion_type.capitalize() + 'Opinion')
 
         # Store the opinion value under the readable column name

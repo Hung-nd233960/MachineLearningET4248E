@@ -16,5 +16,5 @@ class ImageSet:
     irrelevance: int = 0
     disquality: int = 0
     opinion_basel: int = 1
-    opinion_thalamus: int = 1
+    opinion_corona: int = 1
     patient_metadata: Dict[str, int] = field(default_factory=dict)

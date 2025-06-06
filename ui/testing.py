@@ -120,13 +120,13 @@ def testing(app: AppState) -> None:
                 app.current_set = app.current_testing_sets[app.set_index]
                 st.rerun()
         with ccol2:
-            thalamus = st.number_input(
-                "Thalamus Image:",
+            corona = st.number_input(
+                "Corona Radiata Image:",
                 min_value=1,
                 max_value=num_images,
-                value=app.current_set.opinion_thalamus,
+                value=app.current_set.opinion_corona,
             )
-            app.current_set.opinion_thalamus = thalamus
+            app.current_set.opinion_corona = corona
 
             if st.button("Next Set", key="next_set"):
                 app.set_index = (app.set_index + 1) % app.num_test_sets

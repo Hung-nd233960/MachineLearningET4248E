@@ -136,7 +136,7 @@ class AppState:
             self.scan_metadata.loc[condition, "num_ratings"] += 1
             self.scan_metadata.loc[condition, ["true_irrelevance", "true_disquality"]] = [s.irrelevance, s.disquality]
             self.scan_metadata.loc[condition, f"opinion_basel_{self.doctor_id}_{self.doctor_role}"] = s.opinion_basel
-            self.scan_metadata.loc[condition, f"opinion_thalamus_{self.doctor_id}_{self.doctor_role}"] = s.opinion_thalamus
+            self.scan_metadata.loc[condition, f"opinion_corona_{self.doctor_id}_{self.doctor_role}"] = s.opinion_corona
             self.scan_metadata.loc[condition, f"opinion_irrelevance_{self.doctor_id}_{self.doctor_role}"] = s.irrelevance
             self.scan_metadata.loc[condition, f"opinion_quality_{self.doctor_id}_{self.doctor_role}"] = s.disquality
 

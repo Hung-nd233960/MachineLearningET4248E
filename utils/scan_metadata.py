@@ -16,7 +16,7 @@ def more_doctor_columns_adder(df: pd.DataFrame, doctor_id: str) -> pd.DataFrame:
     Adds more doctor opinion columns to the DataFrame.
     """
     df[f"opinion_basel_doctor{doctor_id}"] = 0
-    df[f"opinion_thalamus_doctor{doctor_id}"] = 0
+    df[f"opinion_corona_doctor{doctor_id}"] = 0
     df[f"opinion_irrelevance_doctor{doctor_id}"] = 0
     df[f"opinion_quality_doctor{doctor_id}"] = 0
 

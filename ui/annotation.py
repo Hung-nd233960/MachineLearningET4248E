@@ -143,13 +143,13 @@ def annotation_screen(app: AppState, mode: AnnotateMode) -> None:
             app.current_set.opinion_basel = basel
 
         with bcol4:
-            thalamus = st.number_input(
-                "Thalamus Image:",
+            corona = st.number_input(
+                "Corona Radiata Image:",
                 min_value=1,
                 max_value=num_images,
-                value=app.current_set.opinion_thalamus,
+                value=app.current_set.opinion_corona,
             )
-            app.current_set.opinion_thalamus = thalamus
+            app.current_set.opinion_corona = corona
 
         ccol1, ccol2 = st.columns([1, 1])
         with ccol1:
