@@ -239,8 +239,8 @@ def dashboard(app: AppState) -> pd.DataFrame:
     with col3:
         selected = get_verification_selection(edited_data)
         if render_verification_section(selected):
-            if can_transition(app.page, Page.GREETING):
-                app.page = Page.GREETING
+            if can_transition(app.page, Page.ANNOTATION):
+                app.page = Page.ANNOTATION
                 app.current_annotation_sets = choose_annotation_data(
                     df=app.scan_metadata, filter=selected
                 )

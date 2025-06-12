@@ -22,3 +22,11 @@ pip install -r requirements.txt
 ```bash
 streamlit run main.py
 ```
+
+### Images of the project:
+
+#### Dashboard
+![dashboard](docs/images/dashboard.png)
+
+#### Annotation
+![annotation](docs/images/annotation.png)
