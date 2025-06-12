@@ -1,6 +1,7 @@
 # pylint: disable = missing-module-docstring
 import streamlit as st
 
+
 @st.dialog("Confirm Set")
 def confirm_dialog():
     st.write("Are you sure you want to confirm this set?")

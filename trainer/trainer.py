@@ -1,4 +1,5 @@
 """Trainer class for training a PyTorch model on image data."""
+
 from typing import Optional, Callable, Tuple
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -12,11 +13,18 @@ from torch import optim
 from torchvision import transforms
 
 from utils.image_label_dataset import ImageLabelDataset
-from trainer.training_utils import load_model, decision_logic,\
-get_transforms, get_criterion, get_optimizer, get_scheduler
+from trainer.training_utils import (
+    load_model,
+    decision_logic,
+    get_transforms,
+    get_criterion,
+    get_optimizer,
+    get_scheduler,
+)
 from trainer.sampling import oversample_dataframe, undersample_dataframe
 
-class Trainer():
+
+class Trainer:
     df_train: Optional[pd.DataFrame]
     df_val: Optional[pd.DataFrame]
     test_data: Optional[pd.DataFrame]
@@ -36,8 +44,15 @@ class Trainer():
     augmentation: bool
     """
     A class to handle the training of a model using PyTorch."""
-    def __init__(self, batch_size: int = 32, num_epochs: int = 1, num_classes: int = 3,
-                 decision_mode: str = "safe", decision_fn: Callable = decision_logic):
+
+    def __init__(
+        self,
+        batch_size: int = 32,
+        num_epochs: int = 1,
+        num_classes: int = 3,
+        decision_mode: str = "safe",
+        decision_fn: Callable = decision_logic,
+    ):
         self.df_train: Optional[pd.DataFrame] = None
         self.df_val: Optional[pd.DataFrame] = None
         self.model: Optional[torch.nn.Module] = None
@@ -55,8 +70,11 @@ class Trainer():
         self.train_transform = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    def load_training_data(self, chosen_data: Optional[pd.DataFrame] = None,
-                       balance_method: Optional[str] = None):
+    def load_training_data(
+        self,
+        chosen_data: Optional[pd.DataFrame] = None,
+        balance_method: Optional[str] = None,
+    ):
         """
         Load and optionally balance training data from a DataFrame.
 
@@ -68,37 +86,45 @@ class Trainer():
 
         # Filter relevant labels
         self.training_data = self.training_data[
-        self.training_data['label'].isin(['None', 'BasalGanglia', 'CoronaRadiata'])
+            self.training_data["label"].isin(["None", "BasalGanglia", "CoronaRadiata"])
         ]
 
         # Split FIRST to preserve natural distribution in validation
         self.df_train, self.df_val = train_test_split(
             self.training_data,
             test_size=0.2,
-            stratify=self.training_data['label'],
-            random_state=42
+            stratify=self.training_data["label"],
+            random_state=42,
         )
 
         # Apply sampling ONLY to the training set
-        if balance_method == 'oversample':
+        if balance_method == "oversample":
             self.df_train = oversample_dataframe(self.df_train)
-        elif balance_method == 'undersample':
+        elif balance_method == "undersample":
             self.df_train = undersample_dataframe(self.df_train)
-
 
     def load_test_data(self, test_data: pd.DataFrame):
         """Load test data from a Dataframe."""
         self.test_data = test_data.copy()
-   
-    def create_dataloaders(self, df_train, df_val) -> Tuple[DataLoader, DataLoader, ImageLabelDataset, ImageLabelDataset]:
+
+    def create_dataloaders(
+        self, df_train, df_val
+    ) -> Tuple[DataLoader, DataLoader, ImageLabelDataset, ImageLabelDataset]:
         """Create DataLoader objects for training and validation datasets.
         One problem in augmentation is augmentation leakage, if we only augment the minority class,
           the model will not learn to generalize well."""
-        label_to_idx = {label: i for i, label in enumerate(['None', 'BasalGanglia', 'CoronaRadiata'])}
+        label_to_idx = {
+            label: i
+            for i, label in enumerate(["None", "BasalGanglia", "CoronaRadiata"])
+        }
 
         # Create datasets
-        train_ds = ImageLabelDataset(df_train, transform=self.train_transform, label_to_idx=label_to_idx)
-        val_ds = ImageLabelDataset(df_val, transform=self.transform, label_to_idx=label_to_idx)
+        train_ds = ImageLabelDataset(
+            df_train, transform=self.train_transform, label_to_idx=label_to_idx
+        )
+        val_ds = ImageLabelDataset(
+            df_val, transform=self.transform, label_to_idx=label_to_idx
+        )
 
         # Create dataloaders
         train_loader = DataLoader(train_ds, batch_size=self.batch_size, shuffle=True)
@@ -106,13 +132,15 @@ class Trainer():
 
         return train_loader, val_loader, train_ds, val_ds
 
-    def toolchain_init(self,
-                   augmentation: bool = True,
-                   criterion_name: str = "crossentropy",
-                   optimizer_name: str = "adam",
-                   scheduler_name: Optional[str] = None,
-                   lr: float = 1e-4,
-                   scheduler_kwargs: Optional[dict] = None):
+    def toolchain_init(
+        self,
+        augmentation: bool = True,
+        criterion_name: str = "crossentropy",
+        optimizer_name: str = "adam",
+        scheduler_name: Optional[str] = None,
+        lr: float = 1e-4,
+        scheduler_kwargs: Optional[dict] = None,
+    ):
         """
         Initialize loss function, optimizer, and optionally learning rate scheduler.
 
@@ -134,28 +162,37 @@ class Trainer():
         if self.model is None:
             raise ValueError("Model must be initialized before calling toolchain_init.")
 
-        self.optimizer = get_optimizer(self.model.parameters(), lr=lr, opt_type=optimizer_name)
+        self.optimizer = get_optimizer(
+            self.model.parameters(), lr=lr, opt_type=optimizer_name
+        )
 
         # Scheduler (optional)
         self.scheduler = None
         if scheduler_name:
             scheduler_kwargs = scheduler_kwargs or {}
-            self.scheduler = get_scheduler(self.optimizer, scheduler_name=scheduler_name, **scheduler_kwargs)
+            self.scheduler = get_scheduler(
+                self.optimizer, scheduler_name=scheduler_name, **scheduler_kwargs
+            )
 
-    def train_init(self, model_name: Optional[str] = "ResNet34",
-                   pretrained: bool = True):
+    def train_init(
+        self, model_name: Optional[str] = "ResNet34", pretrained: bool = True
+    ):
         """Initialize the training process by loading data and setting up the model."""
-        train_loader, val_loader, train_ds, val_ds = self.create_dataloaders(self.df_train, self.df_val)
+        train_loader, val_loader, train_ds, val_ds = self.create_dataloaders(
+            self.df_train, self.df_val
+        )
         # --- Model (Pretrained ResNet) ---
-        self.model = load_model(model_name=model_name, pretrained=pretrained, num_classes=self.num_classes)
+        self.model = load_model(
+            model_name=model_name, pretrained=pretrained, num_classes=self.num_classes
+        )
         self.model.fc = nn.Linear(self.model.fc.in_features, self.num_classes)
         self.model = self.model.to(self.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-4)
-        
+
         return train_loader, val_loader, train_ds, val_ds
 
     def train(self):
-        train_loader, val_loader, train_ds, val_ds =  self.train_init()
+        train_loader, val_loader, train_ds, val_ds = self.train_init()
 
         for epoch in range(self.num_epochs):
             self.model.train()
@@ -177,7 +214,9 @@ class Trainer():
 
             epoch_loss = running_loss / len(train_ds)
             epoch_acc = correct / len(train_ds)
-            print(f"Epoch {epoch+1}/{self.num_epochs} - Train loss: {epoch_loss:.4f} - Acc: {epoch_acc:.4f}")
+            print(
+                f"Epoch {epoch+1}/{self.num_epochs} - Train loss: {epoch_loss:.4f} - Acc: {epoch_acc:.4f}"
+            )
 
             # --- Validation with inconclusive counting and classification report ---
             self.model.eval()
@@ -191,14 +230,18 @@ class Trainer():
                     outputs = self.model(images)
 
                     for i in range(images.size(0)):
-                        pred = self.decision_fn(outputs[i], mode=self.decision_mode)  # Your decision logic function
+                        pred = self.decision_fn(
+                            outputs[i], mode=self.decision_mode
+                        )  # Your decision logic function
                         val_preds.append(pred)
                         val_labels.append(labels[i].item())
                         if pred == -1:
                             inconclusive_count += 1
 
             total = len(val_preds)
-            print(f"            → Inconclusive predictions: {inconclusive_count}/{total} ({inconclusive_count/total:.1%})")
+            print(
+                f"            → Inconclusive predictions: {inconclusive_count}/{total} ({inconclusive_count/total:.1%})"
+            )
 
             # Filter out inconclusive (-1) for metrics
             preds_filtered = [p for p in val_preds if p != -1]
@@ -206,21 +249,27 @@ class Trainer():
 
             if preds_filtered:
                 print("            → Classification Report (excluding inconclusive):")
-                print(classification_report(labels_filtered, preds_filtered,
-                                            target_names=['None', 'BasalGanglia', 'CoronaRadiata']))
+                print(
+                    classification_report(
+                        labels_filtered,
+                        preds_filtered,
+                        target_names=["None", "BasalGanglia", "CoronaRadiata"],
+                    )
+                )
                 print("            → Confusion Matrix:")
                 print(confusion_matrix(labels_filtered, preds_filtered))
             else:
-                print("            → All predictions were inconclusive; no classification report available.")
-
+                print(
+                    "            → All predictions were inconclusive; no classification report available."
+                )
 
     def test(self, test_data: pd.DataFrame) -> pd.DataFrame:
         """
         Prepare and evaluate the test data, returning a DataFrame with predictions.
-        
+
         Args:
             test_data (pd.DataFrame): DataFrame with a 'path' column for test image paths.
-        
+
         Returns:
             pd.DataFrame: Original DataFrame with added columns for predicted probabilities.
         """
@@ -228,15 +277,15 @@ class Trainer():
 
         self.model.eval()
         results = []
-        
+
         transform = self.transform
         softmax = nn.Softmax(dim=1)
 
         with torch.no_grad():
             for i, row in self.test_data.iterrows():
-                image_path = row['path']
+                image_path = row["path"]
                 try:
-                    image = Image.open(image_path).convert('RGB')
+                    image = Image.open(image_path).convert("RGB")
                     image = transform(image)
                     image = image.unsqueeze(0).to(self.device)
 
@@ -244,27 +293,31 @@ class Trainer():
                     probs = softmax(output).squeeze().cpu().numpy()
 
                     # Add prediction scores to results
-                    results.append({
-                        **row,  # Original row data
-                        'prob_None': float(probs[0]) * 100,
-                        'prob_BasalGanglia': float(probs[1]) * 100,
-                        'prob_CoronaRadiata': float(probs[2]) * 100
-                    })
+                    results.append(
+                        {
+                            **row,  # Original row data
+                            "prob_None": float(probs[0]) * 100,
+                            "prob_BasalGanglia": float(probs[1]) * 100,
+                            "prob_CoronaRadiata": float(probs[2]) * 100,
+                        }
+                    )
 
                 except Exception as e:
                     print(f"Error processing {image_path}: {e}")
                     # Add fallback zero probabilities
-                    results.append({
-                        **row,
-                        'prob_None': 0.0,
-                        'prob_BasalGanglia': 0.0,
-                        'prob_CoronaRadiata': 0.0
-                    })
+                    results.append(
+                        {
+                            **row,
+                            "prob_None": 0.0,
+                            "prob_BasalGanglia": 0.0,
+                            "prob_CoronaRadiata": 0.0,
+                        }
+                    )
 
         self.test_data = pd.DataFrame(results)
         return self.test_data
-    
-    def export_results(self, filename: str = "test_results.csv", path = "results/"):
+
+    def export_results(self, filename: str = "test_results.csv", path="results/"):
         """Export the test results to a CSV file."""
         if self.test_data is not None:
             self.test_data.to_csv(f"{path}{filename}", index=False)
@@ -279,6 +332,7 @@ class Trainer():
             print(f"Model exported to {model_path}")
         else:
             print("No model to export. Please train the model first.")
+
 
 if __name__ == "__main__":
     trainer = Trainer(batch_size=32, num_epochs=1, num_classes=3)

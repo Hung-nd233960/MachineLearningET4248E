@@ -1,0 +1,39 @@
+[MASTER]
+ignore=venv
+init-hook='import sys; sys.path.append(".")'
+load-plugins=pylint.extensions.docparams
+
+[MESSAGES CONTROL]
+# Disable messages that are often too strict or irrelevant in practical dev
+disable=
+    import-error,
+    redefined-outer-name
+
+[REPORTS]
+output-format=colorized
+reports=no
+
+[FORMAT]
+# Relax line length for UI logic and Streamlit code
+max-line-length=100
+indent-string='    '
+
+[DESIGN]
+max-args=7
+max-attributes=10
+max-locals=20
+max-branches=12
+max-statements=50
+
+[TYPECHECK]
+# Don't complain about dynamic imports in Streamlit apps
+ignored-modules=streamlit,numpy,pandas,PIL,cv2
+ignored-classes=optparse.Values,thread._local,_thread._local
+
+[VARIABLES]
+# Allow common placeholder variable names
+additional-builtins=_
+
+[STRING]
+check-quote-consistency=yes
+check-str-concat-over-line-jumps=yes

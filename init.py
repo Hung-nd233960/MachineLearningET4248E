@@ -1,4 +1,3 @@
-from re import A
 from typing import Tuple, Optional
 import streamlit as st
 from app_state import AppState, Page
@@ -11,18 +10,21 @@ from ui.registration import registration
 from ui.configuration import configuration
 from ui.annotation import annotation_screen, AnnotateMode
 from ui.testing import testing
+from ui.dashboard import dashboard
 
 CONFIG_PATH = "config.toml"
 USER_PATH = "users.toml"
 
-def init_state(config_path: str = "config.toml", 
-               user_path: str = "users.toml") -> Tuple[AppState, CredentialManager]:
+
+def init_state(
+    config_path: str = "config.toml", user_path: str = "users.toml"
+) -> Tuple[AppState, CredentialManager]:
     """Initialize the Streamlit app state and credential manager."""
     st.set_page_config(
-        page_title = "MedFabric - Collaborative Intelligence",
-        page_icon = "🧠",
-        layout = "wide",
-        initial_sidebar_state = "expanded",
+        page_title="MedFabric - Collaborative Intelligence",
+        page_icon="🧠",
+        layout="wide",
+        initial_sidebar_state="expanded",
     )
     if "app" not in st.session_state:
         st.session_state.app = AppState(config=load_toml_config(config_path))
@@ -34,25 +36,30 @@ def init_state(config_path: str = "config.toml",
     return _app, _cm
 
 
-def render(app: AppState, cm: CredentialManager, destination: Optional[Page] =  None) -> None:
+def render(
+    app: AppState, cm: CredentialManager, destination: Optional[Page] = None
+) -> None:
     """Render the appropriate page based on the app state."""
     if destination is None:
         target_page = app.page
     else:
         target_page = destination
 
-    if target_page == Page.GREETING and not app.logon:
+    if target_page == Page.GREETING:
         greeting(app, cm)
     elif target_page == Page.REGISTRATION:
         registration(app, cm)
+    elif target_page == Page.DASHBOARD:
+        dashboard(app)
     elif target_page == Page.CONFIGURATION:
         configuration(app, cm)
     elif target_page == Page.ANNOTATION:
-        app.set_annotation_init()
-        annotation_screen(app, AnnotateMode.ANNOTATE)
-    elif target_page == Page.VERIFICATION:
-        app.set_verification_init()
-        annotation_screen(app, AnnotateMode.VERIFY)
+        if app.doctor_role == "verifier":
+            app.set_verification_init()
+            annotation_screen(app, AnnotateMode.VERIFY)
+        elif app.doctor_role == "labeler":
+            app.set_annotation_init()
+            annotation_screen(app, AnnotateMode.ANNOTATE)
     elif target_page == Page.TESTING:
         testing(app)
     else:

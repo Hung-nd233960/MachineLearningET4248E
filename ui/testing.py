@@ -5,10 +5,11 @@ import pandas as pd
 import streamlit as st
 from app_state import AppState, Page, can_transition
 
+
 def testing(app: AppState) -> None:
     """Display the testing phase screen."""
     if app.testing_initialized is False:
-        
+
         app.init_trainer()
         app.train_model()
         app.set_test_init()
@@ -20,8 +21,9 @@ def testing(app: AppState) -> None:
             app.page = Page.GREETING
             st.rerun()
     num_images = len(app.current_set.image_list)
-    img_path = os.path.join(app.current_set.folder,
-                            app.current_set.image_list[app.current_set.image_index])
+    img_path = os.path.join(
+        app.current_set.folder, app.current_set.image_list[app.current_set.image_index]
+    )
     column1, column2, column3 = st.columns([1, 1, 1])
     with column1:
         img = Image.open(img_path)
@@ -69,7 +71,7 @@ def testing(app: AppState) -> None:
                 diagnoses.setdefault(diagnosis, {})[rater] = value
 
         # Create DataFrame
-        df = pd.DataFrame.from_dict(diagnoses, orient='index').fillna(0).astype(int)
+        df = pd.DataFrame.from_dict(diagnoses, orient="index").fillna(0).astype(int)
 
         # Optional: sort columns and index for nicer display
         df = df.sort_index().sort_index(axis=1)
@@ -96,9 +98,8 @@ def testing(app: AppState) -> None:
             elif temp_quality_button and app.current_set.disquality == 1:
                 app.current_set.disquality = 0
             if app.current_set.disquality == 1:
-                st.warning(
-                    "Marked as Low Quality")
-        
+                st.warning("Marked as Low Quality")
+
         # Row: Number inputs for regions
         st.markdown("### Therapeutic Markings")
         ccol1, ccol2 = st.columns([1, 1])
@@ -113,9 +114,7 @@ def testing(app: AppState) -> None:
 
             if st.button("Previous Set", key="prev_set"):
                 app.set_index = (
-                    app.num_test_sets - 1
-                    if app.set_index == 0
-                    else app.set_index - 1
+                    app.num_test_sets - 1 if app.set_index == 0 else app.set_index - 1
                 )
                 app.current_set = app.current_testing_sets[app.set_index]
                 st.rerun()

@@ -16,7 +16,7 @@ def database_formation(csv_file: str, export_csv=True):
         raise FileNotFoundError(f"CSV file {csv_file} does not exist.")
 
     df = pd.read_csv(csv_file, header=None)
-# Read the CSV file
+    # Read the CSV file
 
     image_paths = df[0].tolist()  # Assume first column has image paths
 
@@ -33,7 +33,6 @@ def database_formation(csv_file: str, export_csv=True):
         except IndexError:
             print(f"Skipping malformed path: {path}")
 
-
     # Count the number of images for each (patient, scan_type)
 
     counter = defaultdict(int)
@@ -43,17 +42,22 @@ def database_formation(csv_file: str, export_csv=True):
     # Create DataFrame from the counter
     data = []
     for (patient_id, scan_type), count in counter.items():
-        data.append({
-            "scan_type": scan_type,
-            "patient_id": patient_id,
-            "num_images": count,
-        })
+        data.append(
+            {
+                "scan_type": scan_type,
+                "patient_id": patient_id,
+                "num_images": count,
+            }
+        )
 
-    df_out = pd.DataFrame(data, columns=[
-        "scan_type",
-        "patient_id",
-        "num_images",
-    ])
+    df_out = pd.DataFrame(
+        data,
+        columns=[
+            "scan_type",
+            "patient_id",
+            "num_images",
+        ],
+    )
 
     # Optionally export to CSV
     if export_csv:
@@ -63,8 +67,6 @@ def database_formation(csv_file: str, export_csv=True):
     print(df_out.head())
 
 
-
 if __name__ == "__main__":
     CSV_FILE = "metadata/image_metadata.csv"  # Replace with your actual file
     database_formation(CSV_FILE)
-

@@ -1,35 +1,35 @@
 """
- Basic Columns
- name → Identifier for each CT scan (e.g., CQ500-CT-427).
- Category → Case category (B1 or B2, likely indicating severity or presence of pathology).
+Basic Columns
+name → Identifier for each CT scan (e.g., CQ500-CT-427).
+Category → Case category (B1 or B2, likely indicating severity or presence of pathology).
 
- Radiologist Annotations (R1, R2, R3)
- Each feature is labeled by three radiologists (R1, R2, R3). The values are binary (0 or 1):
- 1 → The radiologist observed the condition.
- 0 → The radiologist did not observe the condition.
+Radiologist Annotations (R1, R2, R3)
+Each feature is labeled by three radiologists (R1, R2, R3). The values are binary (0 or 1):
+1 → The radiologist observed the condition.
+0 → The radiologist did not observe the condition.
 
- Hemorrhage-related Annotations
- R#:ICH → Intracranial hemorrhage (any bleeding inside the skull).
- R#:IPH → Intraparenchymal hemorrhage (bleeding within the brain tissue).
- R#:IVH → Intraventricular hemorrhage (bleeding into the brain's ventricles).
- R#:SDH → Subdural hematoma (bleeding under the dura mater).
- R#:EDH → Epidural hematoma (bleeding between the skull and dura mater).
- R#:SAH → Subarachnoid hemorrhage (bleeding into the space around the brain).
+Hemorrhage-related Annotations
+R#:ICH → Intracranial hemorrhage (any bleeding inside the skull).
+R#:IPH → Intraparenchymal hemorrhage (bleeding within the brain tissue).
+R#:IVH → Intraventricular hemorrhage (bleeding into the brain's ventricles).
+R#:SDH → Subdural hematoma (bleeding under the dura mater).
+R#:EDH → Epidural hematoma (bleeding between the skull and dura mater).
+R#:SAH → Subarachnoid hemorrhage (bleeding into the space around the brain).
 
- Bleed Location
- R#:BleedLocation-Left → Bleed found in the left hemisphere.
- R#:BleedLocation-Right → Bleed found in the right hemisphere.
- R#:ChronicBleed → Indicates whether the bleed is chronic (long-standing).
+Bleed Location
+R#:BleedLocation-Left → Bleed found in the left hemisphere.
+R#:BleedLocation-Right → Bleed found in the right hemisphere.
+R#:ChronicBleed → Indicates whether the bleed is chronic (long-standing).
 
- Fracture-related Annotations
- R#:Fracture → Presence of any fracture.
- R#:CalvarialFracture → Fracture in the calvaria (the dome-like upper skull).
- R#:OtherFracture → Other types of fractures in the skull.
+Fracture-related Annotations
+R#:Fracture → Presence of any fracture.
+R#:CalvarialFracture → Fracture in the calvaria (the dome-like upper skull).
+R#:OtherFracture → Other types of fractures in the skull.
 
- Mass Effect & Midline Shift
- R#:MassEffect → Signs of mass effect, where swelling or bleeding displaces brain structures.
- R#:MidlineShift → Whether the brain's midline is shifted, 
-                   which indicates severe trauma or pressure.
+Mass Effect & Midline Shift
+R#:MassEffect → Signs of mass effect, where swelling or bleeding displaces brain structures.
+R#:MidlineShift → Whether the brain's midline is shifted,
+                  which indicates severe trauma or pressure.
 """
 
 import pandas as pd

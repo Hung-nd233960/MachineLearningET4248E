@@ -10,9 +10,10 @@ from pydantic import ValidationError
 
 
 class User(BaseModel):
-    id: UUID = Field(default_factory=uuid4)
+    uuid: UUID = Field(default_factory=uuid4)
     password: str
     role: str = "Labeler"
+
 
 class CredentialManager:
     def __init__(self, toml_file: str = "users.toml") -> None:
@@ -38,7 +39,7 @@ class CredentialManager:
         data_to_save = {
             "users": {
                 name: {
-                    "uuid": str(user.id),
+                    "uuid": str(user.uuid),
                     "password": user.password,
                     "role": user.role,
                 }
@@ -47,7 +48,6 @@ class CredentialManager:
         }
         with open(self.toml_file, "w", encoding="utf-8") as f:
             toml.dump(data_to_save, f)
-
 
     def _hash_password(self, password: str) -> str:
         return hashlib.sha256(password.encode()).hexdigest()
@@ -61,7 +61,7 @@ class CredentialManager:
         hashed_pw = self._hash_password(password)
         self.users[username] = User(password=hashed_pw, role=role.lower())
         self._save_users()
-        print(f"User '{username}' added with ID {self.users[username].id}.")
+        print(f"User '{username}' added with uuid {self.users[username].uuid}.")
         return True
 
     def verify_user(self, username: str, password: str) -> bool:
@@ -83,7 +83,7 @@ class CredentialManager:
         """Get the UUID of a user by username."""
         user = self.users.get(username)
         if user:
-            return user.id
+            return user.uuid
         return None
 
     def get_user_role(self, username: str) -> Optional[str]:
@@ -92,25 +92,19 @@ class CredentialManager:
         if user:
             return user.role
         return None
-    
-    def get_username_by_id(self, user_id: UUID) -> Optional[str]:
-        """Get the username by user ID."""
+
+    def get_username_by_id(self, user_id: str) -> Optional[str]:
+        user_id = UUID(user_id) if isinstance(user_id, str) else user_id
+        """Get the username by user uuid."""
         for username, user in self.users.items():
-            if user.id == user_id:
+            if user.uuid == user_id:
                 return username
         return None
-    
+
+
 if __name__ == "__main__":
     cm = CredentialManager()
     print("Current users:", cm.list_users())
-    username_input = input("Enter username to add: ")
-    password_input = input("Enter password: ")
-    role_input = input("Enter role (default 'labeler'): ") or "labeler"
-    cm.add_user(username_input, password_input, role="labeler")
-    print("Updated users:", cm.list_users())
-    username_input = input("Enter username to verify: ")
-    password_input = input("Enter password: ")
-    if cm.verify_user(username_input, password_input):
-        print(f"User '{username_input}' verified successfully.")
-    else:
-        print(f"Failed to verify user '{username_input}'.")
+    print(cm.get_user_id("verifier1"))
+    print(cm.get_user_role("verifier1"))
+    print(cm.get_username_by_id((cm.get_user_id("verifier1"))))

@@ -14,32 +14,38 @@ MODEL_REGISTRY = {
     "ResNext101_32x8d": tv_models.resnext101_32x8d,
 }
 
+
 def load_model(model_name: Optional[str], pretrained: bool, num_classes: int):
     """Load a pretrained model from the registry and modify it for the specified number of classes."""
     if model_name not in MODEL_REGISTRY:
-        raise ValueError(f"Model '{model_name}' not found. Options: {list(MODEL_REGISTRY.keys())}")
-    
+        raise ValueError(
+            f"Model '{model_name}' not found. Options: {list(MODEL_REGISTRY.keys())}"
+        )
+
     model = MODEL_REGISTRY[model_name](pretrained=pretrained)
     model.fc = nn.Linear(model.fc.in_features, num_classes)
     return model
+
 
 def get_transforms(train=True):
     """Get the appropriate transforms for training or validation."""
     base = [
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
     ]
     if train:
         augment = [transforms.RandomHorizontalFlip(), transforms.ColorJitter()]
         return transforms.Compose(augment + base)
     return transforms.Compose(base)
 
+
 def get_criterion(loss_type="crossentropy"):
     if loss_type == "crossentropy":
         return nn.CrossEntropyLoss()
     else:
         raise ValueError("Unsupported loss")
+
 
 def get_optimizer(params, lr=1e-4, opt_type="adam"):
     if opt_type == "adam":
@@ -49,10 +55,11 @@ def get_optimizer(params, lr=1e-4, opt_type="adam"):
     else:
         raise ValueError("Unsupported optimizer")
 
+
 def get_scheduler(optimizer, scheduler_name="StepLR", **kwargs):
     """
     Returns a PyTorch learning rate scheduler based on the name.
-    
+
     Args:
         optimizer (torch.optim.Optimizer): The optimizer to attach the scheduler to.
         scheduler_name (str): Name of the scheduler. Options:
@@ -62,34 +69,42 @@ def get_scheduler(optimizer, scheduler_name="StepLR", **kwargs):
             - "CosineAnnealingLR"
             - "OneCycleLR"
         **kwargs: Additional scheduler-specific arguments.
-    
+
     Returns:
         torch.optim.lr_scheduler._LRScheduler or ReduceLROnPlateau
     """
     name = scheduler_name.lower()
 
     if name == "steplr":
-        return torch.optim.lr_scheduler.StepLR(optimizer, 
-                                               step_size=kwargs.get("step_size", 10), 
-                                               gamma=kwargs.get("gamma", 0.1))
+        return torch.optim.lr_scheduler.StepLR(
+            optimizer,
+            step_size=kwargs.get("step_size", 10),
+            gamma=kwargs.get("gamma", 0.1),
+        )
     if name == "reducelronplateau":
-        return torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 
-                                                          mode=kwargs.get("mode", "min"),
-                                                          factor=kwargs.get("factor", 0.1),
-                                                          patience=kwargs.get("patience", 5))
+        return torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer,
+            mode=kwargs.get("mode", "min"),
+            factor=kwargs.get("factor", 0.1),
+            patience=kwargs.get("patience", 5),
+        )
     if name == "exponentiallr":
-        return torch.optim.lr_scheduler.ExponentialLR(optimizer, 
-                                                      gamma=kwargs.get("gamma", 0.9))
+        return torch.optim.lr_scheduler.ExponentialLR(
+            optimizer, gamma=kwargs.get("gamma", 0.9)
+        )
     if name == "cosineannealinglr":
-        return torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 
-                                                          T_max=kwargs.get("T_max", 50))
+        return torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=kwargs.get("T_max", 50)
+        )
     if name == "onecyclelr":
-        return torch.optim.lr_scheduler.OneCycleLR(optimizer, 
-                                                   max_lr=kwargs.get("max_lr", 0.01),
-                                                   steps_per_epoch=kwargs.get("steps_per_epoch",
-                                                                               100),
-                                                   epochs=kwargs.get("epochs", 10))
+        return torch.optim.lr_scheduler.OneCycleLR(
+            optimizer,
+            max_lr=kwargs.get("max_lr", 0.01),
+            steps_per_epoch=kwargs.get("steps_per_epoch", 100),
+            epochs=kwargs.get("epochs", 10),
+        )
     raise ValueError(f"Unsupported scheduler: {scheduler_name}")
+
 
 def decision_logic(output: torch.Tensor, mode="safe", threshold=0.7, margin=0.1) -> int:
     """
@@ -130,4 +145,6 @@ def decision_logic(output: torch.Tensor, mode="safe", threshold=0.7, margin=0.1)
             return -1
 
     else:
-        raise ValueError(f"Unsupported mode '{mode}'. Choose from 'max', 'threshold', 'margin', '50percent', or 'safe'.")
+        raise ValueError(
+            f"Unsupported mode '{mode}'. Choose from 'max', 'threshold', 'margin', '50percent', or 'safe'."
+        )

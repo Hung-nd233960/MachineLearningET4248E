@@ -18,9 +18,10 @@ def load_toml_config(filename: str = "config.toml") -> dict:
     """
     if not os.path.isfile(filename):
         raise FileNotFoundError(f"Config file '{filename}' not found.")
-    with open(filename, "r", encoding= "utf-8") as f:
+    with open(filename, "r", encoding="utf-8") as f:
         config = toml.load(f)
     return config
+
 
 if __name__ == "__main__":
     config_dict = load_toml_config()

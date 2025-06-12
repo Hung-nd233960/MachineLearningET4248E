@@ -3,6 +3,7 @@ from typing import List, Dict
 from git import Optional
 import pandas as pd
 
+
 @dataclass
 class ImageSet:
     folder: str = ""
