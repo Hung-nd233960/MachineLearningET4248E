@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring
+# pylint: disable=missing-module-docstring, missing-class-docstring
 
 import os
 import hashlib
@@ -10,10 +10,10 @@ from pydantic import ValidationError
 
 
 class User(BaseModel):
+    """Base model for user credentials."""
     uuid: UUID = Field(default_factory=uuid4)
     password: str
     role: str = "Labeler"
-
 
 class CredentialManager:
     def __init__(self, toml_file: str = "users.toml") -> None:
@@ -94,8 +94,8 @@ class CredentialManager:
         return None
 
     def get_username_by_id(self, user_id: str) -> Optional[str]:
-        user_id = UUID(user_id) if isinstance(user_id, str) else user_id
         """Get the username by user uuid."""
+        user_id = UUID(user_id) if isinstance(user_id, str) else user_id
         for username, user in self.users.items():
             if user.uuid == user_id:
                 return username

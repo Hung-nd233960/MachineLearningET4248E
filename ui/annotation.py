@@ -1,3 +1,7 @@
+"""Annotation Phase Screen
+This module provides the UI for the annotation phase of the application, 
+allowing users to annotate and verify medical images."""
+
 from enum import Enum, auto
 import os
 import streamlit as st
@@ -9,11 +13,13 @@ from utils.diagnosis_df import diagnosis_df
 
 
 class AnnotateMode(Enum):
+    """Enumeration for annotation modes."""
     ANNOTATE = auto()
     VERIFY = auto()
 
 
 def render_image_column(img_path, img_index, num_images, key_prefix):
+    """Render a column with an image and navigation controls."""
     img = Image.open(img_path)
     st.image(img)
     col1, col2 = st.columns([6, 2])
@@ -32,6 +38,7 @@ def render_image_column(img_path, img_index, num_images, key_prefix):
 
 
 def render_metadata_panel(app, mode):
+    """Render the metadata panel with patient information and controls."""
     st.write(f"Current Set: {app.set_index + 1} of {app.num_train_sets}")
     zcol1, zcol2 = st.columns([1, 1])
     zcol1.write(f"Patient ID: {app.current_set.patient_id}")
@@ -71,6 +78,7 @@ def render_metadata_panel(app, mode):
 
 
 def render_evaluation_controls(app, num_images):
+    """Render the controls for technical evaluation and therapeutic markings."""
     st.markdown("### Technical Evaluation and Therapeutic Markings")
     bcol1, bcol2, bcol3, bcol4 = st.columns(4)
     with bcol1:
@@ -94,6 +102,7 @@ def render_evaluation_controls(app, num_images):
 
 
 def render_navigation_controls(app, mode):
+    """Render the navigation controls for the annotation phase."""
     ccol1, ccol2 = st.columns([1, 1])
     with ccol1:
         if st.button("Previous Set", key="prev_set"):
@@ -124,6 +133,7 @@ def render_navigation_controls(app, mode):
 
 
 def annotation_screen(app: AppState, mode: AnnotateMode) -> None:
+    """Main function to render the annotation screen."""
     st.title("Annotation Phase")
     num_images = len(app.current_set.image_list)
 

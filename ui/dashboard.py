@@ -120,7 +120,7 @@ def render_self_labeled_section(df: pd.DataFrame) -> None:
     """Render the section for self-labeled patients."""
     st.subheader("Self-Labeled Patients")
     if df.empty:
-        st.write("You have not labeled any patients yet or " "there are no patients.")
+        st.write("You have not labeled any patients yet or there are no patients.")
     else:
         st.dataframe(
             df,
@@ -167,23 +167,22 @@ def render_remaining_section(df: pd.DataFrame) -> pd.DataFrame:
             ],
             hide_index=True,
         )
-    else:
-        st.dataframe(
-            df,
-            column_config=config_edited,
-            use_container_width=False,
-            column_order=[
-                "Scan Type",
-                "Patient ID",
-                "Number of Images",
-                "Number of Ratings",
-                "Labeled By Others",
-                "Verified By Others",
-                "Verify",
-            ],
-            hide_index=True,
-        )
-        return pd.DataFrame()
+    st.dataframe(
+        df,
+        column_config=config_edited,
+        use_container_width=False,
+        column_order=[
+            "Scan Type",
+            "Patient ID",
+            "Number of Images",
+            "Number of Ratings",
+            "Labeled By Others",
+            "Verified By Others",
+            "Verify",
+        ],
+        hide_index=True,
+    )
+    return pd.DataFrame()
 
 
 def render_verification_section(selected_patients: pd.DataFrame) -> bool:
@@ -193,7 +192,7 @@ def render_verification_section(selected_patients: pd.DataFrame) -> bool:
     if selected_patients.empty:
         st.warning("No patients selected for verification.")
     else:
-        st.write("You have selected the following patients " "for verification:")
+        st.write("You have selected the following patients for verification:")
         st.dataframe(
             selected_patients,
             column_config=config_edited,
