@@ -21,20 +21,25 @@ class AnnotateMode(Enum):
 def render_image_column(img_path, img_index, num_images, key_prefix):
     """Render a column with an image and navigation controls."""
     img = Image.open(img_path)
-    st.image(img)
-    col1, col2 = st.columns([6, 2])
-    with col1:
-        if st.button("⬅️ Previous", key=f"prev_{key_prefix}"):
-            return (img_index - 1) % num_images
-    with col2:
-        if st.button("Next ➡️", key=f"next_{key_prefix}"):
-            return (img_index + 1) % num_images
+    st.image(img, caption=f"Image {img_index + 1}/{num_images}", use_container_width=True)
+
+    # Slider first to avoid layout flicker
     slider_val = st.slider(
         "Jump to image", 1, num_images, img_index + 1, key=f"slider_{key_prefix}"
     )
-    if slider_val - 1 != img_index:
-        return slider_val - 1
-    return img_index
+    new_index = slider_val - 1
+
+    col1, col2 = st.columns([6, 2])
+    with col1:
+        if st.button("⬅️ Previous", key=f"prev_{key_prefix}"):
+            new_index = (img_index - 1) % num_images
+    with col2:
+        if st.button("Next ➡️", key=f"next_{key_prefix}"):
+            new_index = (img_index + 1) % num_images
+
+    return new_index
+
+
 
 
 def render_metadata_panel(app, mode):
@@ -148,13 +153,20 @@ def annotation_screen(app: AppState, mode: AnnotateMode) -> None:
 
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
-        app.current_set.image_index_1 = render_image_column(
+        new_image_index_1 = render_image_column(
             img_path_1, app.current_set.image_index_1, num_images, "img_1"
         )
+        if new_image_index_1 != app.current_set.image_index_1:
+            app.current_set.image_index_1 = new_image_index_1
+            st.rerun()
     with col2:
-        app.current_set.image_index_2 = render_image_column(
+        new_image_index_2 = render_image_column(
             img_path_2, app.current_set.image_index_2, num_images, "img_2"
         )
+        if new_image_index_2 != app.current_set.image_index_2:
+            app.current_set.image_index_2 = new_image_index_2
+            st.rerun()
+        
     with col3:
         render_metadata_panel(app, mode)
         render_evaluation_controls(app, num_images)

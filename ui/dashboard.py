@@ -12,6 +12,7 @@ import pandas as pd
 
 from app_state import AppState, can_transition, Page
 
+from utils.scan_metadata import undo_doctor_columns
 from utils.dashboard.dashboard_info import dashboard_info
 from utils.dashboard.choose_annotation_data import choose_annotation_data
 
@@ -236,6 +237,25 @@ def dashboard(app: AppState) -> pd.DataFrame:
         render_self_labeled_section(self_label)
     with col2:
         edited_data = render_remaining_section(remaining)
+        if "confirm_delete" not in st.session_state:
+            st.session_state.confirm_delete = False
+
+        if st.button("Delete all annotations", key="delete_annotations"):
+            st.session_state.confirm_delete = True
+
+        if st.session_state.confirm_delete:
+            st.error(
+                "This will delete all your annotations. "
+                "Are you sure you want to proceed?"
+            )
+            if st.button("Confirm Deletion"):
+                app.scan_metadata = undo_doctor_columns(
+                    app.scan_metadata, str(app.doctor_id)
+                )
+                st.success("All your annotations have been deleted.")
+                st.session_state.confirm_delete = False  # Reset confirmation flag
+                st.rerun()
+
     with col3:
         selected = get_verification_selection(edited_data)
         if render_verification_section(selected):
