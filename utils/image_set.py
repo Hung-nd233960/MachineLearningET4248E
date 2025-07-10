@@ -16,6 +16,8 @@ class ImageSet:
     image_index_2: int = 0
     irrelevance: int = 0
     disquality: int = 0
-    opinion_basel: int = 1
-    opinion_corona: int = 1
+    basel_image: str = ""
+    corona_image: str = ""
+    basel_score: int = 0
+    corona_score: int = 0
     patient_metadata: Dict[str, int] = field(default_factory=dict)

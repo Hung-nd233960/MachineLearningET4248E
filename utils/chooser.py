@@ -222,83 +222,77 @@ def test_data_prepare(
 
     return df
 
-
 def extract_labeler_opinions_from_row(
-    row: pd.Series, cm: CredentialManager
+    row: pd.Series, cm
 ) -> Optional[pd.DataFrame]:
     """
-    Extracts all non-empty labeler opinions from a single row of scan metadata and organizes them
+    Extracts all non-empty labeler opinions from a single row and organizes them
     into a summary DataFrame with one row per doctor (labeler).
+
+    Expected column pattern: <type>_<uuid>_labeler
 
     Parameters:
     ----------
     row : pd.Series
-        A single row from the scan metadata DataFrame, containing opinion columns like
-        'opinion_basel_<uuid>_labeler', 'opinion_corona_<uuid>_labeler', etc.
+        A row from the scan metadata DataFrame with labeler opinion columns.
 
     cm : object
-        An object that has a method `get_username(uuid: str) -> str`,
-        which maps doctor UUIDs to usernames.
+        CredentialManager-like object with `get_username_by_id(uuid: str)`.
 
     Returns:
     -------
     pd.DataFrame or None
-        A DataFrame with one row per doctor, and columns:
+        DataFrame with one row per doctor, columns:
             - Username
-            - IrrelevantOpinion
             - IrrelevanceOpinion
-            - BasalOpinion
-            - CoronaOpinion
-        If there are no valid (non-null) labeler opinions in the row, returns None.
+            - DisqualityOpinion
+            - BaselImage
+            - BaselScore
+            - CoronaImage
+            - CoronaScore
+            - AspectsScore
+        Returns None if no opinions found.
     """
-    # Step 1: Find all keys in the row that end with "_labeler"
     labeler_keys = [k for k in row.index if k.endswith("_labeler")]
-
-    # If there are no labeler-related columns at all, exit early
     if not labeler_keys:
         return None
 
-    doctor_data = {}  # Dictionary to hold opinions grouped by username
+    doctor_data = {}
 
     for key in labeler_keys:
-        # Match the column name pattern: opinion_<type>_<uuid>_labeler
-        match = re.match(r"opinion_(\w+?)_(.+?)_labeler$", key)
+        # Match "<type>_<uuid>_labeler"
+        match = re.match(r"^(.+)_([a-zA-Z0-9-]+)_labeler$", key)
         if not match:
-            continue  # Skip malformed keys that don't match expected format
+            continue
 
         opinion_type, uuid = match.groups()
         value = row[key]
 
-        # Skip empty values (None, NaN, or empty string)
-        if pd.isna(value) or value in ("", None):
+        if pd.isna(value) or value == "":
             continue
 
-        # Get doctor username from UUID
         username = cm.get_username_by_id(uuid)
 
-        # Create a new entry for the doctor if not already present
         if username not in doctor_data:
             doctor_data[username] = {}
 
-        # Convert opinion type to a readable and consistent column name
+        # Map internal keys to readable column names
         readable_key = {
-            "irrelevance": "IrrelevanceOpinion",
+            "basel_image": "BaselImage",
+            "basel_score": "BaselScore",
+            "corona_image": "CoronaImage",
+            "corona_score": "CoronaScore",
             "disquality": "DisqualityOpinion",
-            "basel": "BasalOpinion",
-            "corona": "CoronaOpinion",
-        }.get(opinion_type, opinion_type.capitalize() + "Opinion")
+            "irrelevance": "IrrelevanceOpinion",
+            "aspects_score": "AspectsScore"
+        }.get(opinion_type, opinion_type.replace("_", " ").title().replace(" ", ""))
 
-        # Store the opinion value under the readable column name
         doctor_data[username][readable_key] = value
 
-    # If no valid opinions were found, return None
     if not doctor_data:
         return None
 
-    # Convert the collected doctor data to a DataFrame
-    return pd.DataFrame.from_dict(doctor_data, orient="index").reset_index(
-        names="Username"
-    )
+    return pd.DataFrame.from_dict(doctor_data, orient="index").reset_index(names="Username")
 
 
 if __name__ == "__main__":

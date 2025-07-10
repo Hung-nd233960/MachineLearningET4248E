@@ -4,7 +4,7 @@ import pandas as pd
 from utils.chooser import train_data_prepare, test_data_prepare
 from utils.credential_manager import CredentialManager
 from utils.image_set import ImageSet
-
+from utils.list_parser import expand_page_list, compress_page_list
 from set_chooser import SetChooser
 
 CONFIG_PATH = "config.toml"
@@ -167,20 +167,25 @@ class AppState:
             )
             self.scan_metadata.loc[condition, "num_ratings"] += 1
             self.scan_metadata.loc[
-                condition, ["true_irrelevance", "true_disquality"]
-            ] = [s.irrelevance, s.disquality]
+                condition, f"basel_image_{self.doctor_id}_{self.doctor_role}"
+            ] = compress_page_list(expand_page_list(s.basel_image))
             self.scan_metadata.loc[
-                condition, f"opinion_basel_{self.doctor_id}_{self.doctor_role}"
-            ] = s.opinion_basel
+                condition, f"corona_image_{self.doctor_id}_{self.doctor_role}"
+            ] = compress_page_list(expand_page_list(s.corona_image))
             self.scan_metadata.loc[
-                condition, f"opinion_corona_{self.doctor_id}_{self.doctor_role}"
-            ] = s.opinion_corona
-            self.scan_metadata.loc[
-                condition, f"opinion_irrelevance_{self.doctor_id}_{self.doctor_role}"
+                condition, f"irrelevance_{self.doctor_id}_{self.doctor_role}"
             ] = s.irrelevance
             self.scan_metadata.loc[
-                condition, f"opinion_quality_{self.doctor_id}_{self.doctor_role}"
+                condition, f"disquality_{self.doctor_id}_{self.doctor_role}"
             ] = s.disquality
+            self.scan_metadata.loc[
+                condition, f"basel_score_{self.doctor_id}_{self.doctor_role}"] = s.basel_score
+            self.scan_metadata.loc[
+                condition, f"corona_score_{self.doctor_id}_{self.doctor_role}"
+            ] = s.corona_score
+            self.scan_metadata.loc[
+                condition, f"aspects_score_{self.doctor_id}_{self.doctor_role}"
+            ] = s.basel_score + s.corona_score
 
         if export_csv:
             self.scan_metadata.to_csv(self.scan_metadata_path, index=False)

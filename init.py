@@ -44,6 +44,9 @@ def render(
         target_page = app.page
     else:
         target_page = destination
+    if st.session_state.get("nuke", False):
+        app, cm = nuke_all_state()
+        target_page = Page.GREETING
 
     if target_page == Page.GREETING:
         greeting(app, cm)
@@ -64,3 +67,14 @@ def render(
         testing(app)
     else:
         st.error("Unknown page state.")
+
+def nuke_all_state() -> None:
+    """Clear all Streamlit session state."""
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+
+    st.session_state.app = AppState(config=load_toml_config(CONFIG_PATH))
+    st.session_state.cm = CredentialManager(toml_file=USER_PATH)
+    st.session_state.app.set_credential_manager(st.session_state.cm)
+    st.rerun()
+    return st.session_state.app, st.session_state.cm

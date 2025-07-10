@@ -13,7 +13,7 @@ def diagnosis_df(metadata: Dict) -> pd.DataFrame:
             diagnoses.setdefault(diagnosis, {})[rater] = value
 
     # Create DataFrame
-    df = pd.DataFrame.from_dict(diagnoses, orient="index").fillna(0).astype(int)
+    df = pd.DataFrame.from_dict(diagnoses, orient="index").fillna(0).astype(bool)
 
     # Optional: sort columns and index for nicer display
     df = df.sort_index().sort_index(axis=1)

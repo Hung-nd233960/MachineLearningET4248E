@@ -27,13 +27,16 @@ def dashboard_info(df: pd.DataFrame, uuid: str) -> Tuple[pd.DataFrame, pd.DataFr
 
     # Step 1: Get current UUID columns
     uuid_columns = [col for col in df.columns if uuid in col]
-
+    print(f"UUID columns found: {uuid_columns}")
     # Exclude rows where "true_irrelevance" or "true_disquality" are non-zero
-    exclude_mask = (df.get("true_irrelevance", 0) != 0) | (
-        df.get("true_disquality", 0) != 0
+    exclude_mask = (
+        df.get("true_irrelevance", pd.Series(False, index=df.index)).astype(bool)
+    ) | (
+        df.get("true_disquality", pd.Series(False, index=df.index)).astype(bool)
     )
-    df = df[~exclude_mask].copy()
 
+    df = df[~exclude_mask].copy()
+    print(f"Rows after excluding true_irrelevance or true_disquality: {len(df)}")
     if not uuid_columns:
         print(f"No columns found for UUID: {uuid}")
         labeled_mask = pd.Series([False] * len(df), index=df.index)
@@ -43,7 +46,7 @@ def dashboard_info(df: pd.DataFrame, uuid: str) -> Tuple[pd.DataFrame, pd.DataFr
         self_labeled_df = df[labeled_mask].copy()
 
     remaining_df = df[~labeled_mask].copy()
-
+    print(f"Remaining rows after excluding self-labeled: {len(remaining_df)}")
     # Step 2: Identify all labeler and verifier columns
     labeler_cols = [col for col in df.columns if "_labeler" in col]
     verifier_cols = [col for col in df.columns if "_verifier" in col]
@@ -51,6 +54,7 @@ def dashboard_info(df: pd.DataFrame, uuid: str) -> Tuple[pd.DataFrame, pd.DataFr
     other_labeler_uuids = set(
         col.split("_")[-2] for col in labeler_cols if uuid not in col
     )
+    
     other_verifier_uuids = set(
         col.split("_")[-2] for col in verifier_cols if uuid not in col
     )

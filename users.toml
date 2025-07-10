@@ -7,3 +7,13 @@ role = "verifier"
 uuid = "89d465a2-9410-4234-9a57-8bd1d78b65d4"
 password = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"
 role = "labeler"
+
+[users.level1]
+uuid = "f73e736c-4639-4aa2-ad3b-b4630c1e9c03"
+password = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"
+role = "labeler"
+
+[users.doctor1]
+uuid = "0a5c5a02-4e08-4f30-b3ad-e1686c485c95"
+password = "65e84be33532fb784c48129675f9eff3a682b27168c0ea744b2cf58ee02337c5"
+role = "labeler"
