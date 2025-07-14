@@ -152,3 +152,17 @@ Obviously, you should feel free to adapt this checklist to your needs.
    - Also monitor your inputs’ quality.
 3. Retrain your models on a regular basis with fresh data (automate as much as possible).
 
+
+
+- Objectives:
+
+- cho danh gia tren tung 1 buc anh mot. khi bac si chon 1 buc anh, hien thi tuy chon anh loai gi va diem tuong ung
+(tao ra 1 bang de bac si label tuong ung)
+- bo sung tinh chinh anh: contrast, sang toi, nut default,...
+- bo 1 show anh, them tinh nang xem y kien nguoi khac khi la verifier
+- ho tro anh dicom (optional)
+
+- cach quyet dinh "1 anh label chinh xac":
+- bs1, bs2 dua ra ket qua
+- neu co sai sot, can bs3
+

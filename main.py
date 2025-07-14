@@ -1,8 +1,9 @@
-"""MedFabric System
-Main entry point for the MedFabric Streamlit application."""
+import streamlit as st
 
-from init import init_state, render, CONFIG_PATH, USER_PATH
-from app_state import Page
-
-app_, cm_ = init_state(CONFIG_PATH, USER_PATH)
-render(app_, cm_)
+pg = st.navigation([
+    st.Page("pages/login.py"),
+    st.Page("pages/register.py"),
+    st.Page("pages/dashboard.py"),
+    st.Page("pages/label.py"),]
+)
+pg.run()

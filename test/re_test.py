@@ -16,20 +16,18 @@ def parse_opinion_key(key: str):
 class TestOpinionKeyRegex(unittest.TestCase):
     def test_valid_cases(self):
         self.assertEqual(
-            parse_opinion_key("basel_img_userabc_labeler"),
-            ("basel_img", "userabc")
+            parse_opinion_key("basel_img_userabc_labeler"), ("basel_img", "userabc")
         )
         self.assertEqual(
-            parse_opinion_key("corona_score_1234_labeler"),
-            ("corona_score", "1234")
+            parse_opinion_key("corona_score_1234_labeler"), ("corona_score", "1234")
         )
         self.assertEqual(
             parse_opinion_key("aspects_score_550e8400-e29b_labeler"),
-            ("aspects_score", "550e8400-e29b")
+            ("aspects_score", "550e8400-e29b"),
         )
         self.assertEqual(
             parse_opinion_key("a_b_c_d_1234-labeler_labeler"),
-            ("a_b_c_d", "1234-labeler")
+            ("a_b_c_d", "1234-labeler"),
         )
 
     def test_invalid_cases(self):
@@ -39,13 +37,12 @@ class TestOpinionKeyRegex(unittest.TestCase):
         self.assertIsNone(parse_opinion_key("just_labeler"))
 
     def test_edge_cases(self):
+        self.assertEqual(parse_opinion_key("score_1234_labeler"), ("score", "1234"))
         self.assertEqual(
-            parse_opinion_key("score_1234_labeler"),
-            ("score", "1234")
-        )
-        self.assertEqual(
-            parse_opinion_key("long_type_with_underscores_and_dashes_abc123-labeler_labeler"),
-            ("long_type_with_underscores_and_dashes", "abc123-labeler")
+            parse_opinion_key(
+                "long_type_with_underscores_and_dashes_abc123-labeler_labeler"
+            ),
+            ("long_type_with_underscores_and_dashes", "abc123-labeler"),
         )
 
 
