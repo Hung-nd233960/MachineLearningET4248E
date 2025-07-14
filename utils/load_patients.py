@@ -1,8 +1,8 @@
 import os
 import pandas as pd
-from db import engine
 from sqlalchemy.orm import Session
-from models import ImageSet, Image
+from utils.db import engine
+from utils.models import ImageSet, Image
 
 
 def load_patients(engine_=engine):
@@ -80,7 +80,3 @@ def load_images_from_filesystem(engine_=engine) -> None:
         session.commit()
 
     print("✅ Loaded images into database.")
-
-
-if __name__ == "__main__":
-    load_images_from_filesystem()

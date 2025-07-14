@@ -1,11 +1,11 @@
 from typing import List
 import streamlit as st
 from PIL import Image as PILImage
-from db import get_session
-from image_session import ImageSetEvaluationSession, ImageEvaluationSession
-from image_session import prepare_image_set_evaluation
-from models import Region
-from evaluation import add_or_update_image_evaluation, add_or_update_set_evaluation
+from utils.db import get_session
+from utils.image_session import ImageSetEvaluationSession, ImageEvaluationSession
+from utils.image_session import prepare_image_set_evaluation
+from utils.models import Region
+from utils.evaluation import add_or_update_image_evaluation, add_or_update_set_evaluation
 
 
 app = st.session_state
@@ -18,16 +18,19 @@ elif selected_scans is None:
     st.error("No scans selected for evaluation.")
     st.stop()
 
+
 def reset():
     st.cache_data.clear()
     st.session_state.clear()
     st.switch_page("pages/login.py")
 
+
 def save_annotations():
     conversion_dict = {
         "BasalGanglia": Region.BasalGanglia,
         "CoronaRadiata": Region.CoronaRadiata,
-        None: Region.None_}
+        None: Region.None_,
+    }
     with get_session() as session:
         for set_ in app.labeling_session:
             add_or_update_set_evaluation(
@@ -35,7 +38,7 @@ def save_annotations():
                 doctor_id=doctor_uuid,
                 image_set_id=set_.image_set_id,
                 low_quality=set_.low_quality,
-                irrelevant=set_.irrelevant_data
+                irrelevant=set_.irrelevant_data,
             )
             for img in set_.images:
                 add_or_update_image_evaluation(
@@ -45,13 +48,16 @@ def save_annotations():
                     image_set_id=set_.image_set_id,
                     region=conversion_dict[img.region],
                     basal_score=img.score if img.region == "BasalGanglia" else None,
-                    corona_score=img.score if img.region == "CoronaRadiata" else None
+                    corona_score=img.score if img.region == "CoronaRadiata" else None,
                 )
         session.commit()
     st.success("Annotations saved successfully.")
 
+
 @st.cache_data
-def prepare_labeling_session(_session, doctor_id: str = doctor_uuid, list_scan: List[str] = selected_scans) -> List[ImageSetEvaluationSession]:
+def prepare_labeling_session(
+    _session, doctor_id: str = doctor_uuid, list_scan: List[str] = selected_scans
+) -> List[ImageSetEvaluationSession]:
     with get_session() as session:
         img_set_sessions = []
         for scan_id in list_scan:
@@ -62,13 +68,15 @@ def prepare_labeling_session(_session, doctor_id: str = doctor_uuid, list_scan: 
                 st.warning(f"No evaluations found for scan {scan_id}.")
         return img_set_sessions
 
-def render_metadata_panel(set_index, num_sets, patient_id, scan_type, patient_df, labeler_opinion) -> None:
+
+def render_metadata_panel(
+    set_index, num_sets, patient_id, scan_type, patient_df, labeler_opinion
+) -> None:
     """Render the metadata panel with patient information and controls."""
     st.write(f"Current Set: {set_index + 1} of {num_sets}")
     zcol1, zcol2 = st.columns([1, 1])
     zcol1.write(f"Patient ID: {patient_id}")
     zcol2.write(f"Scan Type: {scan_type}")
-
 
     with st.expander("**Patient Metadata**", expanded=False):
         st.dataframe(patient_df, use_container_width=True, hide_index=True)
@@ -85,7 +93,7 @@ def render_metadata_panel(set_index, num_sets, patient_id, scan_type, patient_df
 
 
 def render_image_column(
-    img_path: str, img_index: int, num_images: int, key_prefix: str
+    img_path: str, img_index: int, num_images: int
 ):
     """Render a column with an image and navigation controls."""
     img = PILImage.open(img_path)
@@ -93,6 +101,8 @@ def render_image_column(
         img, caption=f"Image {img_index + 1}/{num_images}", use_container_width=True
     )
 
+def render_image_navigation_controls(num_images: int, img_index: int, key_prefix: str) -> int:
+    """Render navigation controls for image selection."""
     # Slider first to avoid layout flicker
     slider_val = st.slider(
         "Jump to image", 1, num_images, img_index + 1, key=f"slider_{key_prefix}"
@@ -109,9 +119,8 @@ def render_image_column(
 
     return new_index
 
-def render_set_column(
-    set_index: int, num_sets: int, key_prefix: str
-):
+
+def render_set_column(set_index: int, num_sets: int, key_prefix: str):
     """Render a column with set navigation controls."""
     col1, col2 = st.columns([6, 2])
     new_index = set_index
@@ -124,15 +133,19 @@ def render_set_column(
 
     return new_index
 
+
 def render_image_region_controls() -> None:
     idx = app.current_session.current_index
     # Define keys and default values
     keys_with_defaults = {
-        f"segmented_control_{idx}_{app.current_session.image_set_id}": app.current_session.images[idx].region,}
+        f"segmented_control_{idx}_{app.current_session.image_set_id}": app.current_session.images[
+            idx
+        ].region,
+    }
     # Initialize session state
     for key, default in keys_with_defaults.items():
         st.session_state.setdefault(key, default)
-    
+
     # Extract keys for easier access
     key_region = f"segmented_control_{idx}_{app.current_session.image_set_id}"
 
@@ -141,7 +154,9 @@ def render_image_region_controls() -> None:
     st.segmented_control(
         options=options,
         key=key_region,
-        format_func= lambda s: ''.join([' ' + c if c.isupper() and i != 0 else c for i, c in enumerate(s)]),
+        format_func=lambda s: "".join(
+            [" " + c if c.isupper() and i != 0 else c for i, c in enumerate(s)]
+        ),
         label="Region:",
         selection_mode="single",
     )
@@ -152,12 +167,15 @@ def render_image_region_controls() -> None:
             app.current_session.images[idx].score = 0
     app.current_session.images[idx].region = st.session_state[key_region]
     print(f"Selected region: {app.current_session.images[idx].region}")
- 
+
+
 def render_image_score_controls() -> None:
     idx = app.current_session.current_index
     # Define keys and default values
     keys_with_defaults = {
-        f"score_{idx}_{app.current_session.image_set_id}": app.current_session.images[idx].score,
+        f"score_{idx}_{app.current_session.image_set_id}": app.current_session.images[
+            idx
+        ].score,
     }
     # Initialize session state
     for key, default in keys_with_defaults.items():
@@ -182,6 +200,7 @@ def render_image_score_controls() -> None:
         )
     # Sync back to model
     app.current_session.images[idx].score = st.session_state[key]
+
 
 def render_set_evaluation_controls() -> None:
     """Render the controls for technical evaluation and therapeutic markings."""
@@ -213,15 +232,14 @@ def render_set_evaluation_controls() -> None:
     app.current_session.irrelevant_data = st.session_state[key_irre]
     app.current_session.low_quality = st.session_state[key_disq]
 
+
 def check_annotate_completely() -> bool:
     def check_image_annotations_complete(images: List[ImageEvaluationSession]) -> bool:
         has_basal = any(
-            img.region == "BasalGanglia" and img.score is not None
-            for img in images
+            img.region == "BasalGanglia" and img.score is not None for img in images
         )
         has_corona = any(
-            img.region == "CoronaRadiata" and img.score is not None
-            for img in images
+            img.region == "CoronaRadiata" and img.score is not None for img in images
         )
         return has_basal and has_corona
 
@@ -232,32 +250,45 @@ def check_annotate_completely() -> bool:
             return False
     return True
 
-            
+
 st.title("Annotation Phase")
 with get_session() as session:
     if "labeling_session" not in app:
-        app.labeling_session = prepare_labeling_session(get_session(), doctor_uuid, selected_scans)
+        app.labeling_session = prepare_labeling_session(
+            get_session(), doctor_uuid, selected_scans
+        )
         app.session_index = 0
-        app.current_session = app.labeling_session[app.session_index] if app.labeling_session else None
+        app.current_session = (
+            app.labeling_session[app.session_index] if app.labeling_session else None
+        )
 col1, col2, col3 = st.columns([1, 1, 1])
 
 with col1:
     img_path = app.current_session.images[app.current_session.current_index].image_path
-    new_image_index = render_image_column(img_path = img_path, 
-                                          img_index = app.current_session.current_index,
-                                          num_images = len(app.current_session.images),
-                                          key_prefix = "image_column")
-    if new_image_index != app.current_session.current_index:
-        app.current_session.current_index = new_image_index
-        st.rerun()
+    render_image_column(
+        img_path=img_path,
+        img_index=app.current_session.current_index,
+        num_images=len(app.current_session.images),
+    )
 
 with col2:
+    with st.expander("## Image Navigation", expanded=True):
+        new_image_index = render_image_navigation_controls(
+            num_images=len(app.current_session.images),
+            img_index=app.current_session.current_index,
+            key_prefix="image_navigation")
+        if new_image_index != app.current_session.current_index:
+            app.current_session.current_index = new_image_index
+            st.rerun()
+
     idx = app.current_session.current_index
     key_irre = f"checkbox_irrelevant_{idx}"
     key_disq = f"checkbox_disquality_{idx}"
     if app.get(key_irre, False) or app.get(key_disq, False):
-        st.warning("You cannot annotate images when the set is marked as irrelevant or low quality.")
-    else: 
+        st.warning(
+            "You cannot annotate images when the set is marked as irrelevant or low quality."
+        )
+    else:
         with st.expander("## Current Image Evaluation", expanded=True):
             render_image_region_controls()
             if app.current_session.images[app.current_session.current_index].region:
@@ -271,27 +302,32 @@ with col3:
         patient_id=app.current_session.patient_id,
         scan_type=app.current_session.image_set_id,
         patient_df=app.current_session.patient_diagnosis,
-        labeler_opinion=None)
+        labeler_opinion=None,
+    )
     render_set_evaluation_controls()
     new_set_index = render_set_column(
         set_index=app.session_index,
         num_sets=len(app.labeling_session),
-        key_prefix="set_column"
+        key_prefix="set_column",
     )
     if new_set_index != app.session_index:
         app.session_index = new_set_index
-        app.current_session = app.labeling_session[app.session_index] if app.labeling_session else None
+        app.current_session = (
+            app.labeling_session[app.session_index] if app.labeling_session else None
+        )
         st.rerun()
-    
+
     if not check_annotate_completely():
         st.warning("Please complete all image annotations before proceeding.")
     else:
         if st.button("Confirm Annotations"):
             save_annotations()
             with get_session() as session:
-                from conflict import scan_and_update_image_set_conflicts, flag_conflicted_image_sets
+                from utils.conflict import (
+                    scan_and_update_image_set_conflicts,
+                    flag_conflicted_image_sets,
+                )
+
                 scan_and_update_image_set_conflicts(session)
                 flag_conflicted_image_sets(session)
             reset()
-
-    

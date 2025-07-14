@@ -1,6 +1,6 @@
-from models import Evaluation, Conflict, ConflictType, Region
 from collections import defaultdict
-from models import ImageSet, ImageSetEvaluation
+from utils.models import Evaluation, Conflict, ConflictType, Region
+from utils.models import ImageSet
 
 
 def scan_and_update_image_conflicts(session):
@@ -62,6 +62,7 @@ def scan_and_update_image_conflicts(session):
     session.commit()
     print(f"✅ Scan complete: {len(new_conflicts)} new, {len(existing)} reviewed.")
 
+
 def scan_and_update_image_set_conflicts(session):
 
     # Step 1: Group evaluations per image set
@@ -69,7 +70,12 @@ def scan_and_update_image_set_conflicts(session):
 
     # We assume low_quality and irrelevant_data will move to a new table (ImageSetEvaluation)
     image_set_level_evals = (
-        session.query(Evaluation.image_set_id, Evaluation.doctor_id, Evaluation.low_quality, Evaluation.irrelevant_data)
+        session.query(
+            Evaluation.image_set_id,
+            Evaluation.doctor_id,
+            Evaluation.low_quality,
+            Evaluation.irrelevant_data,
+        )
         .distinct()
         .all()
     )
@@ -87,7 +93,9 @@ def scan_and_update_image_set_conflicts(session):
         irrelevants = {flag[1] for flag in flags}
 
         if len(low_qualities) > 1:
-            current_conflicts.add((iset_id, None, ConflictType.Classification))  # None means global
+            current_conflicts.add(
+                (iset_id, None, ConflictType.Classification)
+            )  # None means global
         elif len(irrelevants) > 1:
             current_conflicts.add((iset_id, None, ConflictType.Classification))
 
@@ -117,7 +125,10 @@ def scan_and_update_image_set_conflicts(session):
         )
 
     session.commit()
-    print(f"✅ Global scan complete: {len(new_conflicts)} new, {len(existing)} reviewed.")
+    print(
+        f"✅ Global scan complete: {len(new_conflicts)} new, {len(existing)} reviewed."
+    )
+
 
 def flag_conflicted_image_sets(session):
     """
@@ -126,10 +137,7 @@ def flag_conflicted_image_sets(session):
 
     # Get set of image_set_ids that are involved in unresolved conflicts
     active_conflict_set_ids = (
-        session.query(Conflict.image_set_id)
-        .filter_by(resolved=False)
-        .distinct()
-        .all()
+        session.query(Conflict.image_set_id).filter_by(resolved=False).distinct().all()
     )
     active_set_ids = {sid for (sid,) in active_conflict_set_ids}
 

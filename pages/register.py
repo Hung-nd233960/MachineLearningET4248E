@@ -1,7 +1,7 @@
 import time
 import streamlit as st
-from db import get_session
-from credentials import register_doctor
+from utils.db import get_session
+from utils.credentials import register_doctor, check_doctor_already_exists
 
 with st.form(
     "registration_form", clear_on_submit=True, enter_to_submit=True, border=True
@@ -18,8 +18,13 @@ with st.form(
             st.error("Passwords do not match.")
         else:
             with get_session() as session:
-                doctor = register_doctor(session, username_input, password_input_1)
-                if doctor:
-                    st.success("Registration successful")
-                    time.sleep(1)
-                    st.switch_page("login.py")
+                if check_doctor_already_exists(session, username_input):
+                    st.error("Username already exists. Please choose another.")
+                elif len(password_input_1) < 8:
+                    st.error("Password must be at least 8 characters long.")
+                else:
+                    doctor = register_doctor(session, username_input, password_input_1)
+                    if doctor:
+                        st.success("Registration successful")
+                        time.sleep(1)
+                        st.switch_page("login.py")

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from models import Evaluation, Doctor, Region, ImageSetEvaluation
+from utils.models import Evaluation, Doctor, Region, ImageSetEvaluation
 
 
 def add_or_update_image_evaluation(
@@ -73,8 +73,7 @@ def add_or_update_image_evaluation(
         return evaluation
     except IntegrityError as e:
         session.rollback()
-        raise ValueError(f"❌ Failed to write evaluation: {e}")
-
+        raise ValueError(f"❌ Failed to write evaluation: {e}") from e
 
 
 def delete_image_evaluation(
@@ -101,14 +100,18 @@ def delete_image_evaluation(
         print("⚠️ Evaluation not found.")
         return False
 
-def add_or_update_set_evaluation(session, doctor_id: str, image_set_id: str, low_quality=False, irrelevant=False):
+
+def add_or_update_set_evaluation(
+    session, doctor_id: str, image_set_id: str, low_quality=False, irrelevant=False
+):
     """
     Add or update a doctor's evaluation for an image set.
     """
-    evaluation = session.query(ImageSetEvaluation).filter_by(
-        doctor_id=doctor_id,
-        image_set_id=image_set_id
-    ).first()
+    evaluation = (
+        session.query(ImageSetEvaluation)
+        .filter_by(doctor_id=doctor_id, image_set_id=image_set_id)
+        .first()
+    )
 
     if evaluation:
         # Update existing
@@ -121,7 +124,7 @@ def add_or_update_set_evaluation(session, doctor_id: str, image_set_id: str, low
             doctor_id=doctor_id,
             image_set_id=image_set_id,
             low_quality=low_quality,
-            irrelevant=irrelevant
+            irrelevant=irrelevant,
         )
         session.add(evaluation)
         print(f"🆕 Added evaluation for {image_set_id}")
@@ -138,20 +141,18 @@ def delete_evaluations_for_image_set(session: Session, image_set_id: str) -> int
     """
     # Delete per-image evaluations
     deleted_image_evals = (
-        session.query(Evaluation)
-        .filter_by(image_set_id=image_set_id)
-        .delete()
+        session.query(Evaluation).filter_by(image_set_id=image_set_id).delete()
     )
 
     # Delete image-set-level evaluations
     deleted_set_evals = (
-        session.query(ImageSetEvaluation)
-        .filter_by(image_set_id=image_set_id)
-        .delete()
+        session.query(ImageSetEvaluation).filter_by(image_set_id=image_set_id).delete()
     )
 
     session.commit()
     total_deleted = deleted_image_evals + deleted_set_evals
-    print(f"🗑️ Deleted {deleted_image_evals} image evaluations and {deleted_set_evals} set evaluations for '{image_set_id}'")
+    print(
+        f"🗑️ Deleted {deleted_image_evals} image evaluations and {deleted_set_evals} set evaluations for '{image_set_id}'"
+    )
 
     return total_deleted

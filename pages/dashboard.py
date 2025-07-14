@@ -2,8 +2,8 @@ from typing import Tuple
 import time
 import streamlit as st
 import pandas as pd
-from models import Evaluation, ImageSet
-from db import get_session
+from utils.models import Evaluation, ImageSet
+from utils.db import get_session
 
 
 @st.cache_data
@@ -37,7 +37,6 @@ def get_image_sets_with_evaluation_status(doctor_uuid: str, _session) -> pd.Data
                 "edit": False,
             }
             for imgset in all_image_sets
-
         ]
     )
 
@@ -75,13 +74,21 @@ config_self = {
         label="Scan Type", disabled=True, pinned=True, help="Type of scan performed"
     ),
     "patient_id": st.column_config.TextColumn(
-        label="Patient ID", disabled=True, pinned=True, help="Unique identifier for the patient"
+        label="Patient ID",
+        disabled=True,
+        pinned=True,
+        help="Unique identifier for the patient",
     ),
     "num_images": st.column_config.NumberColumn(
-        label="Number of Images", disabled=True, pinned=True, help="Number of images in the scan"
+        label="Number of Images",
+        disabled=True,
+        pinned=True,
+        help="Number of images in the scan",
     ),
     "conflicted": st.column_config.CheckboxColumn(
-        label="Conflicted", disabled=True, help="Indicates if the scan has unresolved conflicts"
+        label="Conflicted",
+        disabled=True,
+        help="Indicates if the scan has unresolved conflicts",
     ),
     "evaluated": st.column_config.CheckboxColumn(
         label="Evaluated",
@@ -122,7 +129,14 @@ else:
             use_container_width=True,
             column_config=config_self,
             disabled=["scan_id", "patient_id", "num_images", "conflicted", "evaluated"],
-            column_order=["scan_id", "patient_id", "num_images", "conflicted", "evaluated", "edit"],
+            column_order=[
+                "scan_id",
+                "patient_id",
+                "num_images",
+                "conflicted",
+                "evaluated",
+                "edit",
+            ],
             hide_index=True,
             key="evaluated_image_sets",
         )
@@ -130,12 +144,18 @@ else:
         selected_scans = edited_data[edited_data["edit"]]
         if not selected_scans.empty:
             st.subheader("Selected Scans for Evaluation")
-            st.dataframe(selected_scans.drop(columns=["edit"]), use_container_width=True, hide_index=True)
+            st.dataframe(
+                selected_scans.drop(columns=["edit"]),
+                use_container_width=True,
+                hide_index=True,
+            )
             st.write(f"You have chosen {len(selected_scans)} scans for evaluation.")
             if st.button("Evaluate Selected Scans"):
                 # Store selected scans in session state for further processing
                 st.session_state.selected_scans = selected_scans["scan_id"].tolist()
-                st.success(f"Selected {len(st.session_state.selected_scans)} scans for evaluation.")
+                st.success(
+                    f"Selected {len(st.session_state.selected_scans)} scans for evaluation."
+                )
                 time.sleep(1)
                 st.switch_page("pages/label.py")
         else:

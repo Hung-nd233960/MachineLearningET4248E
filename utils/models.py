@@ -158,6 +158,7 @@ class Conflict(Base):
     - Can be image-level (e.g. region/score disagreements)
     - Or image set-level (e.g. low_quality/irrelevant_data disagreement)
     """
+
     __tablename__ = "conflicts"
 
     conflict_id = Column(Integer, primary_key=True, autoincrement=True)
@@ -177,14 +178,18 @@ class Conflict(Base):
         ),
     )
 
+
 class ImageSetEvaluation(Base):
     """
     Doctor-specific evaluation of the entire image set.
     """
+
     __tablename__ = "image_set_evaluations"
 
     doctor_id = Column(String, ForeignKey("doctors.uuid"), primary_key=True)
-    image_set_id = Column(String, ForeignKey("image_sets.image_set_id"), primary_key=True)
+    image_set_id = Column(
+        String, ForeignKey("image_sets.image_set_id"), primary_key=True
+    )
 
     is_low_quality = Column(Boolean, default=False, nullable=False)
     is_irrelevant = Column(Boolean, default=False, nullable=False)

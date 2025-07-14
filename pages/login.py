@@ -1,6 +1,6 @@
 import streamlit as st
-from db import get_session
-from credentials import login_doctor
+from utils.db import get_session
+from utils.credentials import login_doctor
 
 with st.form("login_form", clear_on_submit=True, enter_to_submit=True, border=True):
     st.title("Login to MedFabric")
@@ -14,7 +14,7 @@ with st.form("login_form", clear_on_submit=True, enter_to_submit=True, border=Tr
             doctor = login_doctor(session, username_input, password_input)
             if doctor:
                 st.success("Login successful")
-                
+
                 # e.g., store in session_state
                 st.session_state.user = doctor.uuid
                 st.switch_page("pages/dashboard.py")

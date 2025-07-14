@@ -3,7 +3,7 @@ import uuid
 from passlib.context import CryptContext
 from sqlalchemy.exc import IntegrityError
 
-from models import Doctor  # assuming your model is named models.py
+from utils.models import Doctor  # assuming your model is named models.py
 
 # Set up password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -38,9 +38,23 @@ def register_doctor(session, username: str, password: str, **kwargs):
         session.commit()
         print(f"✅ Registered doctor {username}")
         return doctor
-    except IntegrityError:
+    except IntegrityError as exc:
         session.rollback()
-        raise ValueError(f"❌ Username '{username}' already exists.")
+        raise ValueError(f"❌ Username '{username}' already exists.") from exc
+
+
+def check_doctor_already_exists(session, username: str) -> bool:
+    """
+    Check if a doctor with the given username already exists.
+
+    Args:
+        session: SQLAlchemy DB session
+        username (str): username to check
+
+    Returns:
+        True if exists, False otherwise
+    """
+    return session.query(Doctor).filter_by(username=username).count() > 0
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

@@ -2,7 +2,15 @@ from dataclasses import dataclass
 from typing import Optional, List
 import streamlit as st
 import pandas as pd
-from models import ImageSetEvaluation, Patient, Region, Image, Evaluation, ImageSet  # reuse your Enum
+from utils.models import (
+    ImageSetEvaluation,
+    Patient,
+    Region,
+    Image,
+    Evaluation,
+    ImageSet,
+)  # reuse your Enum
+
 
 @dataclass
 class ImageEvaluationSession:
@@ -24,9 +32,12 @@ class ImageSetEvaluationSession:
     conflicted: bool
     images: List[ImageEvaluationSession]
     current_index: int = 0
-    patient_diagnosis: pd.DataFrame = None 
+    patient_diagnosis: pd.DataFrame = None
 
-def prepare_image_evaluation(session, doctor_id: str, image_set_id: str, image_id: str, **kwargs) -> Optional[ImageEvaluationSession]:
+
+def prepare_image_evaluation(
+    session, doctor_id: str, image_set_id: str, image_id: str, **kwargs
+) -> Optional[ImageEvaluationSession]:
     """
     Retrieve a specific image evaluation made by a doctor.
 
@@ -40,19 +51,20 @@ def prepare_image_evaluation(session, doctor_id: str, image_set_id: str, image_i
     Returns:
         ImageEvaluation object or None if no evaluation found.
     """
-    evaluation = session.query(Evaluation).filter_by(
-        doctor_id=doctor_id,
-        image_set_id=image_set_id,
-        image_id=image_id
-    ).first()
+    evaluation = (
+        session.query(Evaluation)
+        .filter_by(doctor_id=doctor_id, image_set_id=image_set_id, image_id=image_id)
+        .first()
+    )
 
     if evaluation is None:
         return None
 
-    image = session.query(Image).filter_by(
-        image_set_id=image_set_id,
-        image_id=image_id
-    ).first()
+    image = (
+        session.query(Image)
+        .filter_by(image_set_id=image_set_id, image_id=image_id)
+        .first()
+    )
 
     if image is None:
         raise ValueError(f"Image {image_id} not found in set {image_set_id}.")
@@ -73,9 +85,13 @@ def prepare_image_evaluation(session, doctor_id: str, image_set_id: str, image_i
         slice_index=image.slice_index,
         image_path=image_path,
         region=evaluation.region.value,
-        score=score)
-    
-def prepare_image_set_evaluation(session, doctor_id: str, image_set_id: str) -> Optional[ImageSetEvaluationSession]:
+        score=score,
+    )
+
+
+def prepare_image_set_evaluation(
+    session, doctor_id: str, image_set_id: str
+) -> Optional[ImageSetEvaluationSession]:
     img_set = session.query(ImageSet).filter_by(image_set_id=image_set_id).first()
     if not img_set:
         return None
@@ -84,13 +100,16 @@ def prepare_image_set_evaluation(session, doctor_id: str, image_set_id: str) -> 
     conflicted = img_set.conflicted
     num_images = img_set.num_images
 
-    patient_diagnosis = patient_diagnosis_to_df(session.query(Patient).filter_by(patient_id=patient_id).first())
+    patient_diagnosis = patient_diagnosis_to_df(
+        session.query(Patient).filter_by(patient_id=patient_id).first()
+    )
     # Step 2: Get image set evaluation
-    set_eval = session.query(ImageSetEvaluation).filter_by(
-        doctor_id=doctor_id,
-        image_set_id=image_set_id
-    ).first()
-    
+    set_eval = (
+        session.query(ImageSetEvaluation)
+        .filter_by(doctor_id=doctor_id, image_set_id=image_set_id)
+        .first()
+    )
+
     irrelevant = set_eval.irrelevant_data if set_eval else False
     low_quality = set_eval.low_quality_data if set_eval else False
 
@@ -101,18 +120,30 @@ def prepare_image_set_evaluation(session, doctor_id: str, image_set_id: str) -> 
     image_evaluations = []
 
     for image in images:
-        eval_session = prepare_image_evaluation(session, doctor_id, image_set_id, image.image_id, parent_path=img_set.folder_path)
+        eval_session = prepare_image_evaluation(
+            session,
+            doctor_id,
+            image_set_id,
+            image.image_id,
+            parent_path=img_set.folder_path,
+        )
         if eval_session:
             image_evaluations.append(eval_session)
         else:
             # If no evaluation exists, create a default one
-            image_evaluations.append(ImageEvaluationSession(
-                image_id=image.image_id,
-                slice_index=image.slice_index,  # Default value, adjust as needed
-                image_path= img_set.folder_path + "/" + image.image_id if img_set.folder_path else None,
-                region=None,  # Default region
-                score=None  # Default score
-            ))
+            image_evaluations.append(
+                ImageEvaluationSession(
+                    image_id=image.image_id,
+                    slice_index=image.slice_index,  # Default value, adjust as needed
+                    image_path=(
+                        img_set.folder_path + "/" + image.image_id
+                        if img_set.folder_path
+                        else None
+                    ),
+                    region=None,  # Default region
+                    score=None,  # Default score
+                )
+            )
     # Step 6: Return full evaluation object
     return ImageSetEvaluationSession(
         image_set_id=image_set_id,
@@ -123,7 +154,7 @@ def prepare_image_set_evaluation(session, doctor_id: str, image_set_id: str) -> 
         low_quality=low_quality,
         images=image_evaluations,
         patient_diagnosis=patient_diagnosis,
-        folder_path=folder_path
+        folder_path=folder_path,
     )
 
 
@@ -133,11 +164,20 @@ def patient_diagnosis_to_df(patient_obj) -> pd.DataFrame:
 
     # List of all diagnostic attributes
     attrs = [
-        "ICH", "IPH", "IVH", "SDH", "EDH", "SAH",
-        "BleedLocation-Left", "BleedLocation-Right",
+        "ICH",
+        "IPH",
+        "IVH",
+        "SDH",
+        "EDH",
+        "SAH",
+        "BleedLocation-Left",
+        "BleedLocation-Right",
         "ChronicBleed",
-        "Fracture", "CalvarialFracture", "OtherFracture",
-        "MassEffect", "MidlineShift"
+        "Fracture",
+        "CalvarialFracture",
+        "OtherFracture",
+        "MassEffect",
+        "MidlineShift",
     ]
 
     # Prepare a dictionary to hold row-wise data
