@@ -129,7 +129,6 @@ def scan_and_update_image_set_conflicts(session):
         f"✅ Global scan complete: {len(new_conflicts)} new, {len(existing)} reviewed."
     )
 
-
 def flag_conflicted_image_sets(session):
     """
     Set the 'conflicted' flag on ImageSet table for any set that has unresolved conflicts.

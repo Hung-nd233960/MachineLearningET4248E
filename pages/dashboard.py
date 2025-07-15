@@ -99,6 +99,34 @@ config_self = {
         label="Evaluate", disabled=False, help="Click to evaluate or edit this scan"
     ),
 }
+
+config_chosen = {
+    "scan_id": st.column_config.TextColumn(
+        label="Scan Type", disabled=True, pinned=True, help="Type of scan performed"
+    ),
+    "patient_id": st.column_config.TextColumn(
+        label="Patient ID",
+        disabled=True,
+        pinned=True,
+        help="Unique identifier for the patient",
+    ),
+    "num_images": st.column_config.NumberColumn(
+        label="Number of Images",
+        disabled=True,
+        pinned=True,
+        help="Number of images in the scan",
+    ),
+    "conflicted": st.column_config.CheckboxColumn(
+        label="Conflicted",
+        disabled=True,
+        help="Indicates if the scan has unresolved conflicts",
+    ),
+    "evaluated": st.column_config.CheckboxColumn(
+        label="Evaluated",
+        disabled=True,
+        help="Indicates if the scan has been evaluated by you",
+    ),
+}
 doctor_uuid = st.session_state.get("user")
 if not doctor_uuid:
     st.error("You must be logged in to view this information.")
@@ -148,6 +176,7 @@ else:
                 selected_scans.drop(columns=["edit"]),
                 use_container_width=True,
                 hide_index=True,
+                column_config=config_chosen,
             )
             st.write(f"You have chosen {len(selected_scans)} scans for evaluation.")
             if st.button("Evaluate Selected Scans"):

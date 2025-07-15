@@ -72,8 +72,24 @@ def prepare_labeling_session(
 def render_metadata_panel(
     set_index, num_sets, patient_id, scan_type, patient_df, labeler_opinion
 ) -> None:
+    
     """Render the metadata panel with patient information and controls."""
-    st.write(f"Current Set: {set_index + 1} of {num_sets}")
+    acol1, acol2 = st.columns([1, 1])
+    with acol1:
+        st.write(f"Current Set: {set_index + 1} of {num_sets}")
+    with acol2:
+        new_set_index = render_set_column(
+        set_index=app.session_index,
+        num_sets=len(app.labeling_session),
+        key_prefix="set_column",
+    )
+        if new_set_index != app.session_index:
+            app.session_index = new_set_index
+            app.current_session = (
+                app.labeling_session[app.session_index] if app.labeling_session else None
+            )
+            st.rerun()
+
     zcol1, zcol2 = st.columns([1, 1])
     zcol1.write(f"Patient ID: {patient_id}")
     zcol2.write(f"Scan Type: {scan_type}")
@@ -104,17 +120,18 @@ def render_image_column(
 def render_image_navigation_controls(num_images: int, img_index: int, key_prefix: str) -> int:
     """Render navigation controls for image selection."""
     # Slider first to avoid layout flicker
-    slider_val = st.slider(
-        "Jump to image", 1, num_images, img_index + 1, key=f"slider_{key_prefix}"
-    )
-    new_index = slider_val - 1
+    acol1, acol2, acol3 = st.columns([2, 1, 1])
+    with acol1:
+        slider_val = st.slider(
+            "Jump to image", 1, num_images, img_index + 1, key=f"slider_{key_prefix}"
+        )
+        new_index = slider_val - 1
 
-    col1, col2 = st.columns([6, 2])
-    with col1:
-        if st.button("Previous Image", key=f"prev_{key_prefix}"):
+    with acol2:
+        if st.button("Previous", key=f"prev_{key_prefix}"):
             new_index = (img_index - 1) % num_images
-    with col2:
-        if st.button("Next Image", key=f"next_{key_prefix}"):
+    with acol3:
+        if st.button("Next", key=f"next_{key_prefix}"):
             new_index = (img_index + 1) % num_images
 
     return new_index
@@ -122,7 +139,7 @@ def render_image_navigation_controls(num_images: int, img_index: int, key_prefix
 
 def render_set_column(set_index: int, num_sets: int, key_prefix: str):
     """Render a column with set navigation controls."""
-    col1, col2 = st.columns([6, 2])
+    col1, col2 = st.columns([1, 1])
     new_index = set_index
     with col1:
         if st.button("Previous Set", key=f"prev_set_{key_prefix}"):
@@ -281,7 +298,7 @@ with col2:
             app.current_session.current_index = new_image_index
             st.rerun()
 
-    idx = app.current_session.current_index
+    idx = app.session_index
     key_irre = f"checkbox_irrelevant_{idx}"
     key_disq = f"checkbox_disquality_{idx}"
     if app.get(key_irre, False) or app.get(key_disq, False):
@@ -290,9 +307,12 @@ with col2:
         )
     else:
         with st.expander("## Current Image Evaluation", expanded=True):
-            render_image_region_controls()
-            if app.current_session.images[app.current_session.current_index].region:
-                render_image_score_controls()
+            acol1, acol2 = st.columns([1, 1])
+            with acol1:
+                render_image_region_controls()
+            with acol2:
+                if app.current_session.images[app.current_session.current_index].region:
+                    render_image_score_controls()
 
 
 with col3:
@@ -305,18 +325,7 @@ with col3:
         labeler_opinion=None,
     )
     render_set_evaluation_controls()
-    new_set_index = render_set_column(
-        set_index=app.session_index,
-        num_sets=len(app.labeling_session),
-        key_prefix="set_column",
-    )
-    if new_set_index != app.session_index:
-        app.session_index = new_set_index
-        app.current_session = (
-            app.labeling_session[app.session_index] if app.labeling_session else None
-        )
-        st.rerun()
-
+    
     if not check_annotate_completely():
         st.warning("Please complete all image annotations before proceeding.")
     else:
@@ -327,7 +336,6 @@ with col3:
                     scan_and_update_image_set_conflicts,
                     flag_conflicted_image_sets,
                 )
-
                 scan_and_update_image_set_conflicts(session)
                 flag_conflicted_image_sets(session)
             reset()
