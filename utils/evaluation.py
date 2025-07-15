@@ -123,8 +123,8 @@ def add_or_update_set_evaluation(
         evaluation = ImageSetEvaluation(
             doctor_id=doctor_id,
             image_set_id=image_set_id,
-            low_quality=low_quality,
-            irrelevant=irrelevant,
+            is_low_quality=low_quality,
+            is_irrelevant=irrelevant,
         )
         session.add(evaluation)
         print(f"🆕 Added evaluation for {image_set_id}")

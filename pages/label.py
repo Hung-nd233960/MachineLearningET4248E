@@ -7,7 +7,11 @@ from utils.image_session import prepare_image_set_evaluation
 from utils.models import Region
 from utils.evaluation import add_or_update_image_evaluation, add_or_update_set_evaluation
 
-
+st.set_page_config(
+    page_title="Labeling Phase",
+    page_icon=":pencil2:",
+    layout="wide",
+)
 app = st.session_state
 doctor_uuid = app.get("user")
 selected_scans = app.get("selected_scans")
@@ -154,10 +158,12 @@ def render_set_column(set_index: int, num_sets: int, key_prefix: str):
 def render_image_region_controls() -> None:
     idx = app.current_session.current_index
     # Define keys and default values
+    if app.current_session.images[idx].region == "None":
+        default_ = None
+    else:
+        default_ = app.current_session.images[idx].region
     keys_with_defaults = {
-        f"segmented_control_{idx}_{app.current_session.image_set_id}": app.current_session.images[
-            idx
-        ].region,
+        f"segmented_control_{idx}_{app.current_session.image_set_id}": default_
     }
     # Initialize session state
     for key, default in keys_with_defaults.items():

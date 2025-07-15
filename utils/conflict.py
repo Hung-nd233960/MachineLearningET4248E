@@ -1,5 +1,5 @@
 from collections import defaultdict
-from utils.models import Evaluation, Conflict, ConflictType, Region
+from utils.models import ImageSetEvaluation, Evaluation, Conflict, ConflictType, Region
 from utils.models import ImageSet
 
 
@@ -71,10 +71,10 @@ def scan_and_update_image_set_conflicts(session):
     # We assume low_quality and irrelevant_data will move to a new table (ImageSetEvaluation)
     image_set_level_evals = (
         session.query(
-            Evaluation.image_set_id,
-            Evaluation.doctor_id,
-            Evaluation.low_quality,
-            Evaluation.irrelevant_data,
+            ImageSetEvaluation.image_set_id,
+            ImageSetEvaluation.doctor_id,
+            ImageSetEvaluation.is_low_quality,
+            ImageSetEvaluation.is_irrelevant,
         )
         .distinct()
         .all()

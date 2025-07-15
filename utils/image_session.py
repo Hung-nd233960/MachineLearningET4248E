@@ -84,7 +84,7 @@ def prepare_image_evaluation(
         image_id=image.image_id,
         slice_index=image.slice_index,
         image_path=image_path,
-        region=evaluation.region.value,
+        region=evaluation.region.value if evaluation.region != Region.None_ else None,
         score=score,
     )
 
@@ -110,8 +110,8 @@ def prepare_image_set_evaluation(
         .first()
     )
 
-    irrelevant = set_eval.irrelevant_data if set_eval else False
-    low_quality = set_eval.low_quality_data if set_eval else False
+    irrelevant = set_eval.is_irrelevant if set_eval else False
+    low_quality = set_eval.is_low_quality if set_eval else False
 
     # Step 3: Get all images for this image set
     images = session.query(Image).filter_by(image_set_id=image_set_id).all()

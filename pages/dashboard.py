@@ -5,7 +5,10 @@ import pandas as pd
 from utils.models import Evaluation, ImageSet
 from utils.db import get_session
 
-
+st.set_page_config(
+    page_title="Dashboard",
+    page_icon=":bar_chart:",
+    layout="wide",)
 @st.cache_data
 def get_image_sets_with_evaluation_status(doctor_uuid: str, _session) -> pd.DataFrame:
     """
