@@ -32,4 +32,4 @@ with st.form(
                     if doctor:
                         st.success("Registration successful")
                         time.sleep(1)
-                        st.switch_page("login.py")
+                        st.switch_page("pages/login.py")

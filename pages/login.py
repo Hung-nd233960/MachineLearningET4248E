@@ -27,4 +27,4 @@ with st.form("login_form", clear_on_submit=True, enter_to_submit=True, border=Tr
                 st.error("Invalid username or password")
 
 if st.button("Register"):
-    st.switch_page("register.py")
+    st.switch_page("pages/register.py")

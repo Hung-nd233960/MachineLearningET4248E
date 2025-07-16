@@ -166,3 +166,7 @@ Obviously, you should feel free to adapt this checklist to your needs.
 - bs1, bs2 dua ra ket qua
 - neu co sai sot, can bs3
 
+- luu nhap cho tung bo, luu tam thoi va luu hoan thanh doi voi tung bo
+- vd: neu co 5 set, thi neu xong 2 set va do 1 set, luu 2 set du va luu nhap 3 set con lai
+- neu tiep tuc thi tiep tuc 3 set con lai
+- co 1 bac si co quyen quyet dinh cuoi cung
