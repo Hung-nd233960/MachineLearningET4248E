@@ -101,6 +101,7 @@ sau khi chọn vùng, sẽ hiện ra ô nhập điểm, vui lòng nhập điểm
 
 ### Các tính năng đang phát triển:
 
+Latest Update: v1.6.0
 - Tính năng lưu nháp, lưu những bộ ảnh đã đánh dấu trong phiên khi các bộ khác chưa được ghi nhãn.
 - Nhập điểm tương ứng từng vùng: C, L, IC, I, M1-M6
 - Xem ảnh ở nhiều window CT khác nhau.
