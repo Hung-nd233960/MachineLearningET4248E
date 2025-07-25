@@ -5,7 +5,7 @@ from pathlib import Path
 project_dir = Path.cwd()
 
 # Assume venv is in the project directory (change if needed)
-venv_path = project_dir / "venv" / "bin" / "activate"
+venv_path = project_dir / ".venv" / "bin" / "activate"
 
 # Script content
 bash_script = f"""#!/bin/bash
@@ -15,7 +15,7 @@ streamlit run main.py
 """
 
 # Path to Desktop
-desktop_path = Path.home() / "Desktop" / "launch_venv.sh"
+desktop_path = Path.home() / "Desktop" / "MedFabric.sh"
 
 # Write the script to Desktop
 with open(desktop_path, "w", encoding="utf-8") as f:
