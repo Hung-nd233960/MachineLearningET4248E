@@ -1,0 +1,26 @@
+[project]
+name = "machinelearninget4248e"
+version = "1.6.0"
+description = "A labeling tool for CT scans"
+authors = [
+    {name = "Hung-nd233960",email = "hung1qqo@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "streamlit (>=1.47.0,<2.0.0)",
+    "sqlalchemy (>=2.0.41,<3.0.0)",
+    "passlib (>=1.7.4,<2.0.0)",
+    "bcrypt (>=4.3.0,<5.0.0)",
+    "pandas (>=2.3.1,<3.0.0)"
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "machinelearninget4248e"
+version = "1.6.0"
+package-mode = false
+
