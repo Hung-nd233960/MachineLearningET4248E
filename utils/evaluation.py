@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from utils.models import Evaluation, Doctor, Region, ImageSetEvaluation
+from utils.config import BASEL_MAX, CORONA_MAX
 
 
 def add_or_update_image_evaluation(
@@ -27,13 +28,13 @@ def add_or_update_image_evaluation(
         raise ValueError("Region must not be None.")
 
     if region == Region.BasalGanglia:
-        if basal_score is None or not (0 <= basal_score <= 4):
-            raise ValueError("BasalGanglia score must be between 0 and 4.")
+        if basal_score is None or not (0 <= basal_score <= BASEL_MAX):
+            raise ValueError(f"BasalGanglia score must be between 0 and {BASEL_MAX}.")
         if corona_score is not None:
             raise ValueError("Corona score must be null for BasalGanglia.")
     elif region == Region.CoronaRadiata:
-        if corona_score is None or not (0 <= corona_score <= 6):
-            raise ValueError("CoronaRadiata score must be between 0 and 6.")
+        if corona_score is None or not (0 <= corona_score <= CORONA_MAX):
+            raise ValueError(f"CoronaRadiata score must be between 0 and {CORONA_MAX}.")
         if basal_score is not None:
             raise ValueError("Basal score must be null for CoronaRadiata.")
     elif region == Region.None_:

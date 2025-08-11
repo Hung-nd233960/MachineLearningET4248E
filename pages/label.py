@@ -5,7 +5,11 @@ from utils.db import get_session
 from utils.image_session import ImageSetEvaluationSession, ImageEvaluationSession
 from utils.image_session import prepare_image_set_evaluation
 from utils.models import Region
-from utils.evaluation import add_or_update_image_evaluation, add_or_update_set_evaluation
+from utils.evaluation import (
+    add_or_update_image_evaluation,
+    add_or_update_set_evaluation,
+)
+from utils.config import BASEL_MAX, CORONA_MAX
 
 st.set_page_config(
     page_title="Labeling Phase",
@@ -76,21 +80,22 @@ def prepare_labeling_session(
 def render_metadata_panel(
     set_index, num_sets, patient_id, scan_type, patient_df, labeler_opinion
 ) -> None:
-    
     """Render the metadata panel with patient information and controls."""
     acol1, acol2 = st.columns([1, 1])
     with acol1:
         st.write(f"Current Set: {set_index + 1} of {num_sets}")
     with acol2:
         new_set_index = render_set_column(
-        set_index=app.session_index,
-        num_sets=len(app.labeling_session),
-        key_prefix="set_column",
-    )
+            set_index=app.session_index,
+            num_sets=len(app.labeling_session),
+            key_prefix="set_column",
+        )
         if new_set_index != app.session_index:
             app.session_index = new_set_index
             app.current_session = (
-                app.labeling_session[app.session_index] if app.labeling_session else None
+                app.labeling_session[app.session_index]
+                if app.labeling_session
+                else None
             )
             st.rerun()
 
@@ -112,16 +117,17 @@ def render_metadata_panel(
             st.warning("No labeler's opinions available for this set.")
 
 
-def render_image_column(
-    img_path: str, img_index: int, num_images: int
-):
+def render_image_column(img_path: str, img_index: int, num_images: int):
     """Render a column with an image and navigation controls."""
     img = PILImage.open(img_path)
     st.image(
         img, caption=f"Image {img_index + 1}/{num_images}", use_container_width=True
     )
 
-def render_image_navigation_controls(num_images: int, img_index: int, key_prefix: str) -> int:
+
+def render_image_navigation_controls(
+    num_images: int, img_index: int, key_prefix: str
+) -> int:
     """Render navigation controls for image selection."""
     # Slider first to avoid layout flicker
     acol1, acol2, acol3 = st.columns([2, 1, 1])
@@ -209,16 +215,16 @@ def render_image_score_controls() -> None:
 
     if app.current_session.images[idx].region == "BasalGanglia":
         st.number_input(
-            "Basal Ganglia Score (0-4):",
+            f"Basal Ganglia Score (0-{BASEL_MAX}):",
             min_value=0,
-            max_value=4,
+            max_value=BASEL_MAX,
             key=key,
         )
     elif app.current_session.images[idx].region == "CoronaRadiata":
         st.number_input(
-            "Corona Radiata Score (0-6):",
+            f"Corona Radiata Score (0-{CORONA_MAX}):",
             min_value=0,
-            max_value=6,
+            max_value=CORONA_MAX,
             key=key,
         )
     # Sync back to model
@@ -299,7 +305,8 @@ with col2:
         new_image_index = render_image_navigation_controls(
             num_images=len(app.current_session.images),
             img_index=app.current_session.current_index,
-            key_prefix="image_navigation")
+            key_prefix="image_navigation",
+        )
         if new_image_index != app.current_session.current_index:
             app.current_session.current_index = new_image_index
             st.rerun()
@@ -331,7 +338,7 @@ with col3:
         labeler_opinion=None,
     )
     render_set_evaluation_controls()
-    
+
     if not check_annotate_completely():
         st.warning("Please complete all image annotations before proceeding.")
     else:
@@ -342,6 +349,7 @@ with col3:
                     scan_and_update_image_set_conflicts,
                     flag_conflicted_image_sets,
                 )
+
                 scan_and_update_image_set_conflicts(session)
                 flag_conflicted_image_sets(session)
             reset()

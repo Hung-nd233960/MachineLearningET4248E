@@ -11,6 +11,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import validates
+from utils.config import BASEL_MAX, CORONA_MAX
 
 Base = declarative_base()
 
@@ -123,8 +124,10 @@ class Evaluation(Base):
     def validate_scores(self, key, value):
         if key == "basal_score":
             if self.region == Region.BasalGanglia:
-                if value is None or not 0 <= value <= 4:
-                    raise ValueError("BasalGanglia score must be between 0 and 4.")
+                if value is None or not 0 <= value <= BASEL_MAX:
+                    raise ValueError(
+                        f"BasalGanglia score must be between 0 and {BASEL_MAX}."
+                    )
             else:
                 if value is not None:
                     raise ValueError(
@@ -132,8 +135,10 @@ class Evaluation(Base):
                     )
         elif key == "corona_score":
             if self.region == Region.CoronaRadiata:
-                if value is None or not 0 <= value <= 6:
-                    raise ValueError("CoronaRadiata score must be between 0 and 6.")
+                if value is None or not 0 <= value <= CORONA_MAX:
+                    raise ValueError(
+                        f"CoronaRadiata score must be between 0 and {CORONA_MAX}."
+                    )
             else:
                 if value is not None:
                     raise ValueError(

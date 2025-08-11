@@ -1,21 +1,28 @@
 import os
 from pathlib import Path
 
-# Get the current working directory (the project root, where this script is run)
+# Define project root (where this Python script is run)
 project_dir = Path.cwd()
 
-# Assume venv is in the project directory (change if needed)
+# Path to venv activate script
 venv_path = project_dir / ".venv" / "bin" / "activate"
 
-# Script content
+# Path to output script
+desktop_path = Path.home() / "Desktop" / "MedFabric.sh"
+
+# Ensure venv and main.py exist
+main_py = project_dir / "main.py"
+if not venv_path.exists():
+    raise FileNotFoundError(f"Virtual environment not found: {venv_path}")
+if not main_py.exists():
+    raise FileNotFoundError(f"main.py not found in: {project_dir}")
+
+# Build Bash script
 bash_script = f"""#!/bin/bash
 cd "{project_dir}"
 source "{venv_path}"
-streamlit run main.py
+exec streamlit run main.py
 """
-
-# Path to Desktop
-desktop_path = Path.home() / "Desktop" / "MedFabric.sh"
 
 # Write the script to Desktop
 with open(desktop_path, "w", encoding="utf-8") as f:
@@ -24,4 +31,5 @@ with open(desktop_path, "w", encoding="utf-8") as f:
 # Make it executable
 os.chmod(desktop_path, 0o755)
 
-print(f"Launcher script created at: {desktop_path}")
+print(f"✅ Streamlit launcher script created: {desktop_path}")
+
