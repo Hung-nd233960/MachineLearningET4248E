@@ -41,7 +41,15 @@ npx electron .
 
 # Cleanup when Electron closes
 echo "🔹 Stopping Streamlit..."
-kill $STREAMLIT_PID
+pids=$(lsof -ti tcp:8501)
+
+for pid in $pids; do
+  # Check if the process name contains "streamlit"
+  if ps -p $pid -o comm= | grep -qi streamlit; then
+    echo "Killing Streamlit process $pid"
+    kill $pid
+  fi
+done
 """
 
 # Write the script to Desktop
