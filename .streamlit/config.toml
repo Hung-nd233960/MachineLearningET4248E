@@ -1,6 +1,13 @@
 [server]
 fileWatcherType = "none"
-
+headless = true
+port = 8501
 [client]
 showSidebarNavigation = false
 toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "dark"

@@ -1,27 +1,47 @@
+#!/usr/bin/env python3
 import os
 from pathlib import Path
 
 # Define project root (where this Python script is run)
 project_dir = Path.cwd()
 
-# Path to venv activate script
-venv_path = project_dir / ".venv" / "bin" / "activate"
-
-# Path to output script
+# Output launcher path
 desktop_path = Path.home() / "Desktop" / "MedFabric.sh"
 
-# Ensure venv and main.py exist
+# Ensure main.py exists
 main_py = project_dir / "main.py"
-if not venv_path.exists():
-    raise FileNotFoundError(f"Virtual environment not found: {venv_path}")
 if not main_py.exists():
     raise FileNotFoundError(f"main.py not found in: {project_dir}")
 
-# Build Bash script
+# Build Bash launcher script
 bash_script = f"""#!/bin/bash
+set -e
+
 cd "{project_dir}"
-source "{venv_path}"
-exec streamlit run main.py
+
+# Activate Poetry environment
+echo "🔹 Activating Poetry environment..."
+$(poetry env activate)
+
+# Start Streamlit in background
+echo "🔹 Starting Streamlit..."
+streamlit run main.py --server.headless true &
+STREAMLIT_PID=$!
+
+# Wait for Streamlit to start
+echo "🔹 Waiting for Streamlit to become available..."
+until nc -z localhost 8501; do
+    sleep 1
+done
+
+cd "{project_dir}/electron-app"
+# Launch Electron
+echo "🔹 Launching Electron..."
+npx electron .
+
+# Cleanup when Electron closes
+echo "🔹 Stopping Streamlit..."
+kill $STREAMLIT_PID
 """
 
 # Write the script to Desktop
@@ -31,5 +51,4 @@ with open(desktop_path, "w", encoding="utf-8") as f:
 # Make it executable
 os.chmod(desktop_path, 0o755)
 
-print(f"✅ Streamlit launcher script created: {desktop_path}")
-
+print(f"✅ Launcher script created: {desktop_path}")
