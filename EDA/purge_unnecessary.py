@@ -1,6 +1,7 @@
-import pandas as pd
 import os
 import shutil
+import pandas as pd
+
 
 # Read the CSV file
 df = pd.read_csv("cleaned_dataset.csv")
