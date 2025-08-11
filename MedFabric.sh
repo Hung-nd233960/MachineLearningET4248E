@@ -5,7 +5,11 @@ cd "/home/Plutonium/Documents/MachineLearningET4248E"
 
 # Activate Poetry environment
 echo "🔹 Activating Poetry environment..."
-poetry run bash -c 'streamlit run main.py --server.headless true &' &
+$(poetry env activate)
+
+# Start Streamlit in background
+echo "🔹 Starting Streamlit..."
+streamlit run main.py --server.headless true &
 STREAMLIT_PID=$!
 
 # Wait for Streamlit to start
@@ -15,13 +19,6 @@ until nc -z localhost 8501; do
 done
 
 cd "/home/Plutonium/Documents/MachineLearningET4248E/electron-app"
-
-# Ensure Electron deps are installed
-if [ ! -d "node_modules" ]; then
-    echo "🔹 Installing Electron dependencies..."
-    npm install
-fi
-
 # Launch Electron
 echo "🔹 Launching Electron..."
 npx electron .
@@ -37,5 +34,3 @@ for pid in $pids; do
     kill $pid
   fi
 done
-
-

@@ -2,19 +2,19 @@
 import os
 from pathlib import Path
 
-# Define project root (where this Python script is run)
-project_dir = Path.cwd()
 
-# Output launcher path
-desktop_path = Path.home() / "Desktop" / "MedFabric.sh"
+def create_launcher_script(to_desktop=True):
+    project_dir = Path.cwd()
+    if to_desktop:
+        output_path = Path.home() / "Desktop" / "MedFabric.sh"
+    else:
+        output_path = project_dir / "MedFabric.sh"
 
-# Ensure main.py exists
-main_py = project_dir / "main.py"
-if not main_py.exists():
-    raise FileNotFoundError(f"main.py not found in: {project_dir}")
+    main_py = project_dir / "main.py"
+    if not main_py.exists():
+        raise FileNotFoundError(f"main.py not found in: {project_dir}")
 
-# Build Bash launcher script
-bash_script = f"""#!/bin/bash
+    bash_script = f"""#!/bin/bash
 set -e
 
 cd "{project_dir}"
@@ -52,11 +52,70 @@ for pid in $pids; do
 done
 """
 
-# Write the script to Desktop
-with open(desktop_path, "w", encoding="utf-8") as f:
-    f.write(bash_script)
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(bash_script)
 
-# Make it executable
-os.chmod(desktop_path, 0o755)
+    os.chmod(output_path, 0o755)
+    print(f"✅ Launcher script created: {output_path}")
 
-print(f"✅ Launcher script created: {desktop_path}")
+
+def create_desktop_entry(
+    icon_path: str, app_name: str, shell_script_path: Path, to_desktop=True
+):
+    desktop_entry_content = f"""[Desktop Entry]
+Type=Application
+Name={app_name}
+Exec={shell_script_path}
+Icon={icon_path}
+Terminal=true
+Categories=Utility;Development;
+"""
+
+    if to_desktop:
+        desktop_path = Path.home() / "Desktop" / f"{app_name}.desktop"
+    else:
+        desktop_path = Path.cwd() / f"{app_name}.desktop"
+
+    with open(desktop_path, "w", encoding="utf-8") as f:
+        f.write(desktop_entry_content)
+
+    os.chmod(desktop_path, 0o755)
+    print(f"✅ Desktop entry created: {desktop_path}")
+    return desktop_path
+
+
+def create_desktop_entry(
+    icon_path: Path, app_name: str, shell_script_path: Path, to_desktop: bool = True
+):
+    if not icon_path.exists():
+        raise FileNotFoundError(f"Icon file not found: {icon_path}")
+
+    desktop_entry_content = f"""[Desktop Entry]
+Type=Application
+Name={app_name}
+Exec={shell_script_path}
+Icon={icon_path}
+Terminal=true
+Categories=Utility;Development;
+"""
+
+    desktop_path = (
+        Path.home() / "Desktop" if to_desktop else Path.cwd()
+    ) / f"{app_name}.desktop"
+
+    with open(desktop_path, "w", encoding="utf-8") as f:
+        f.write(desktop_entry_content)
+
+    os.chmod(desktop_path, 0o755)
+    print(f"✅ Desktop entry created: {desktop_path}")
+    return desktop_path
+
+
+if __name__ == "__main__":
+    # Change to False to create script in current directory instead of Desktop
+    create_launcher_script(to_desktop=False)
+    icon_path = Path.cwd() / "icon.png"  # Adjust path to your icon
+    app_name = "MedFabric"
+    shell_script_path = Path.cwd() / "MedFabric.sh"
+    create_desktop_entry(icon_path, app_name, shell_script_path, to_desktop=True)
+    print("✅ All setup complete!")
