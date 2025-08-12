@@ -37,7 +37,7 @@ done
 cd "{project_dir}/electron-app"
 # Launch Electron
 echo "🔹 Launching Electron..."
-npx electron .
+npx electron . --no-sandbox
 
 # Cleanup when Electron closes
 echo "🔹 Stopping Streamlit..."

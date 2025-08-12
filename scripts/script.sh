@@ -32,7 +32,7 @@ chmod 2775 "$SHARED_FOLDER"
 # 4. Install dependencies for development
 echo "[INFO] Installing Python, Git, pipx, Poetry..."
 apt update
-apt install -y python3 python3-pip python3-venv git pipx
+apt install -y python3 python3-pip python3-venv git pipx npm nodejs
 
 # Ensure pipx path is in global shell init
 sudo -u "$USERNAME" pipx ensurepath
@@ -51,11 +51,13 @@ sudo -u "$USERNAME" git checkout development
 
 # 7. Install Poetry dependencies
 sudo -u "$USERNAME" pipx run poetry install
+cd "/electron-app"
+sudo -u "$USERNAME" npm install 
 
 # 9. Install GNOME Shell extensions
 echo "[INFO] Installing GNOME Shell extensions..."
 apt install -y gnome-shell-extensions
-
+apt install -y netcat-traditional
 # Create Desktop directory if not present
 mkdir -p "$DESKTOP_DIR"
 
