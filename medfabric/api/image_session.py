@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, List
 import streamlit as st
 import pandas as pd
-from utils.models import (
+from utils.db.models import (
     ImageSetEvaluation,
     Patient,
     Region,

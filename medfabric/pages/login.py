@@ -1,6 +1,6 @@
 import streamlit as st
-from utils.db import get_session
-from utils.credentials import login_doctor
+from utils.db.database import get_session
+from api.credentials import login_doctor
 
 st.set_page_config(
     page_title="Login",

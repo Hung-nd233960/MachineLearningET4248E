@@ -51,7 +51,7 @@ sudo -u "$USERNAME" git checkout development
 
 # 7. Install Poetry dependencies
 sudo -u "$USERNAME" pipx run poetry install
-cd "/electron-app"
+cd "/home/$USERNAME/$REPO_NAME/electron-app" 
 sudo -u "$USERNAME" npm install 
 
 # 9. Install GNOME Shell extensions

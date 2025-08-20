@@ -1,8 +1,8 @@
 import os
 import pandas as pd
 from sqlalchemy.orm import Session
-from utils.db import engine
-from utils.models import ImageSet, Image
+from utils.db.database import engine
+from utils.db.models import ImageSet, Image
 
 
 def load_patients(engine_=engine):

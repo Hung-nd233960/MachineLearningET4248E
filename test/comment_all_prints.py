@@ -9,7 +9,7 @@ def comment_prints_in_file(file_path: Path, backup_root: Path):
 
     # Move original to backup
     file_path.rename(backup_file)
-    #print(f"Backed up: {backup_file}")
+    # print(f"Backed up: {backup_file}")
 
     with (
         open(backup_file, "r", encoding="utf-8") as fin,
@@ -36,12 +36,12 @@ def recursive_process(root: Path):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        #print("Usage: python comment_prints.py <folder>")
+        # print("Usage: python comment_prints.py <folder>")
         sys.exit(1)
     root_dir = Path(sys.argv[1])
     if not root_dir.is_dir():
-        #print(f"Not a directory: {root_dir}")
+        # print(f"Not a directory: {root_dir}")
         sys.exit(1)
 
     recursive_process(root_dir)
-    #print("Done processing all .py files recursively.")
+    # print("Done processing all .py files recursively.")

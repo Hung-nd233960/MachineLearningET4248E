@@ -1,6 +1,6 @@
 from collections import defaultdict
-from utils.models import ImageSetEvaluation, Evaluation, Conflict, ConflictType, Region
-from utils.models import ImageSet
+from utils.db.models import ImageSetEvaluation, Evaluation, Conflict, ConflictType, Region
+from utils.db.models import ImageSet
 
 
 def scan_and_update_image_conflicts(session):
@@ -128,6 +128,7 @@ def scan_and_update_image_set_conflicts(session):
     print(
         f"✅ Global scan complete: {len(new_conflicts)} new, {len(existing)} reviewed."
     )
+
 
 def flag_conflicted_image_sets(session):
     """

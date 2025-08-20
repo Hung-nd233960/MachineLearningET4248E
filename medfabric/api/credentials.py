@@ -3,7 +3,7 @@ import uuid
 from passlib.context import CryptContext
 from sqlalchemy.exc import IntegrityError
 
-from utils.models import Doctor  # assuming your model is named models.py
+from utils.db.models import Doctor  # assuming your model is named models.py
 
 # Set up password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

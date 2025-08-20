@@ -4,7 +4,7 @@ from utils.load_patients import (
     load_patients,
     load_images_from_filesystem,
 )
-from utils.models import Base
+from utils.db.models import Base
 
 
 def init_db():

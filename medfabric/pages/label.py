@@ -1,15 +1,15 @@
 from typing import List
 import streamlit as st
 from PIL import Image as PILImage
-from utils.db import get_session
-from utils.image_session import ImageSetEvaluationSession, ImageEvaluationSession
-from utils.image_session import prepare_image_set_evaluation
-from utils.models import Region
-from utils.evaluation import (
+from utils.db.database import get_session
+from api.image_session import ImageSetEvaluationSession, ImageEvaluationSession
+from api.image_session import prepare_image_set_evaluation
+from utils.db.models import Region
+from api.evaluation import (
     add_or_update_image_evaluation,
     add_or_update_set_evaluation,
 )
-from utils.config import BASEL_MAX, CORONA_MAX
+from api.config import BASEL_MAX, CORONA_MAX
 
 st.set_page_config(
     page_title="Labeling Phase",
@@ -345,7 +345,7 @@ with col3:
         if st.button("Confirm Annotations"):
             save_annotations()
             with get_session() as session:
-                from utils.conflict import (
+                from api.conflict import (
                     scan_and_update_image_set_conflicts,
                     flag_conflicted_image_sets,
                 )

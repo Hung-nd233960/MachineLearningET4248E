@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from utils.models import Evaluation, Doctor, Region, ImageSetEvaluation
-from utils.config import BASEL_MAX, CORONA_MAX
+from utils.db.models import Evaluation, Doctor, Region, ImageSetEvaluation
+from api.config import BASEL_MAX, CORONA_MAX
 
 
 def add_or_update_image_evaluation(

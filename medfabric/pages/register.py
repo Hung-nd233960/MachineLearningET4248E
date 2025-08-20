@@ -1,7 +1,7 @@
 import time
 import streamlit as st
-from utils.db import get_session
-from utils.credentials import register_doctor, check_doctor_already_exists
+from utils.db.database import get_session
+from api.credentials import register_doctor, check_doctor_already_exists
 
 st.set_page_config(
     page_title="Register",
