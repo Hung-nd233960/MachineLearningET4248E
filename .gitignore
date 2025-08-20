@@ -6,6 +6,7 @@ data/
 __pycache__/
 .github/
 deprecated/
+.pytest_cache/
 
 # Dependencies
 node_modules/
