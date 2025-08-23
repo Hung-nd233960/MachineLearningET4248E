@@ -42,3 +42,6 @@ Thumbs.db
 # Env / secrets
 .env
 .env.*
+
+ct_data/
+results/

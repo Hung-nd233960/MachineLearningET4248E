@@ -3,10 +3,15 @@ from typing import Optional
 from uuid import UUID, uuid4
 import logging
 from passlib.context import CryptContext
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 from medfabric.db.models import Doctors
-
+from medfabric.api.errors import (
+    DatabaseError,
+    UserNotFoundError,
+    InvalidCredentialsError,
+    DuplicateEntryError,
+)
 
 # Set up password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -39,17 +44,20 @@ def register_doctor(
     try:
         session.add(doctor)
         session.commit()
-        # INFO: successful, high-level event
         logger.info("Registered doctor '%s'", username)
         return doctor
 
     except IntegrityError as exc:
         session.rollback()
-        # ERROR: operation failed
         logger.error(
             "Failed to register doctor '%s': username already exists", username
         )
-        raise ValueError(f"Username '{username}' already exists.") from exc
+        raise DuplicateEntryError(f"Username '{username}' already exists.") from exc
+
+    except SQLAlchemyError as exc:
+        session.rollback()
+        logger.exception("Database error during registration for '%s'", username)
+        raise DatabaseError(f"Failed to register doctor '{username}'") from exc
 
 
 def check_doctor_already_exists(session: Session, username: str) -> bool:
@@ -67,22 +75,22 @@ def check_doctor_already_exists(session: Session, username: str) -> bool:
 
 
 def login_doctor(session: Session, username: str, password: str):
-    """
-    Login a doctor by username and password.
+    try:
+        doctor = session.query(Doctors).filter_by(username=username).first()
+    except SQLAlchemyError as exc:
+        logger.exception("Database error during login for '%s'", username)
+        raise DatabaseError(f"Failed to login doctor '{username}'") from exc
 
-    Returns:
-        Doctor object on success, None on failure.
-    """
-    doctor = session.query(Doctors).filter_by(username=username).first()
     if not doctor:
-        print("❌ Username not found.")
-        return None
+        logger.info("Login failed: username not found '%s'", username)
+        raise UserNotFoundError(f"Doctor with username '{username}' not found.")
 
     if verify_password(password, doctor.password_hash):
-        print(f"✅ Login successful for {username}")
+        logger.info("Login successful for '%s'", username)
         return doctor
-    print("❌ Invalid password.")
-    return None
+
+    logger.info("Login failed: invalid password for '%s'", username)
+    raise InvalidCredentialsError("Invalid password.")
 
 
 def get_uuid_from_username(session, username: str) -> Optional[UUID]:

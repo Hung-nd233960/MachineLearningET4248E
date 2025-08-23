@@ -3,6 +3,7 @@ import enum
 import uuid as uuid_lib
 from datetime import datetime
 from typing import Optional
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import (
     String,
@@ -10,10 +11,10 @@ from sqlalchemy import (
     Integer,
     ForeignKey,
     Enum,
-    ForeignKeyConstraint,
     DateTime,
     text,
     Identity,
+    MetaData,
 )
 from sqlalchemy.orm import (
     validates,
@@ -21,6 +22,8 @@ from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
 )
+
+metadata_obj = MetaData()
 
 
 class Base(DeclarativeBase):
@@ -94,8 +97,8 @@ class ImageSet(Base):
     )
 
     image_set_id: Mapped[str] = mapped_column(String, primary_key=True)
-    patient_id: Mapped[str] = mapped_column(
-        String, ForeignKey("patients.patient_id"), nullable=False
+    patient_id: Mapped[Optional[str]] = mapped_column(
+        String, ForeignKey("patients.patient_id"), nullable=True
     )
     num_images: Mapped[int] = mapped_column(Integer, nullable=False)
     folder_path: Mapped[str] = mapped_column(String, nullable=False)
@@ -104,85 +107,13 @@ class ImageSet(Base):
 
 
 class Image(Base):
-    """Represents a single slice (image) in an image set."""
-
     __tablename__ = "images"
 
-    image_id: Mapped[str] = mapped_column(String, primary_key=True)  # e.g., "004.png"
+    image_id: Mapped[str] = mapped_column(String, nullable=False, primary_key=True)
     image_set_id: Mapped[str] = mapped_column(
-        String, ForeignKey("image_sets.image_set_id"), primary_key=True
+        String, ForeignKey("image_sets.image_set_id"), nullable=False
     )
     slice_index: Mapped[int] = mapped_column(Integer, nullable=False)
-
-
-class Evaluation(Base):
-    """Represents a doctor's evaluation of a single image."""
-
-    __tablename__ = "evaluations"
-
-    doctor_id: Mapped[uuid_lib.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("doctors.uuid", ondelete="CASCADE"),
-        primary_key=True,
-    )
-    image_id: Mapped[str] = mapped_column(String, primary_key=True, nullable=False)
-    image_set_id: Mapped[str] = mapped_column(String, primary_key=True, nullable=False)
-
-    region: Mapped[Region] = mapped_column(
-        Enum(Region), default=Region.None_, nullable=False
-    )
-    basal_score_central_left: Mapped[Optional[int]] = mapped_column(
-        Integer, nullable=True
-    )
-    basal_score_central_right: Mapped[Optional[int]] = mapped_column(
-        Integer, nullable=True
-    )
-    basal_score_cortex_left: Mapped[Optional[int]] = mapped_column(
-        Integer, nullable=True
-    )
-    basal_score_cortex_right: Mapped[Optional[int]] = mapped_column(
-        Integer, nullable=True
-    )
-    corona_score_left: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    corona_score_right: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    notes: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-
-    __table_args__ = (
-        ForeignKeyConstraint(
-            ["image_set_id", "image_id"], ["images.image_set_id", "images.image_id"]
-        ),
-    )
-
-    @validates("region")
-    def validate_region(self, key, value):
-        if value not in Region:
-            raise ValueError(f"Invalid region: {value}. Must be one of {list(Region)}.")
-        return value
-
-
-class Conflict(Base):
-    """Represents a conflict found in evaluations."""
-
-    __tablename__ = "conflicts"
-
-    conflict_id: Mapped[int] = mapped_column(
-        Integer, primary_key=True, autoincrement=True
-    )
-    image_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    image_set_id: Mapped[str] = mapped_column(String, nullable=False)
-    conflict_type: Mapped[ConflictType] = mapped_column(
-        Enum(ConflictType), nullable=False
-    )
-    resolved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-
-    __table_args__ = (
-        ForeignKeyConstraint(
-            ["image_set_id", "image_id"],
-            ["images.image_set_id", "images.image_id"],
-            use_alter=True,
-            name="fk_image_conflict",
-        ),
-    )
 
 
 class Session(Base):
@@ -203,18 +134,106 @@ class Session(Base):
 
 
 class ImageSetEvaluation(Base):
-    """Doctor-specific evaluation of the entire image set."""
-
     __tablename__ = "image_set_evaluations"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    # <-- surrogate PK (recommended for flexibility)
 
     doctor_id: Mapped[uuid_lib.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("doctors.uuid", ondelete="CASCADE"),
-        primary_key=True,
+        nullable=False,
     )
     image_set_id: Mapped[str] = mapped_column(
-        String, ForeignKey("image_sets.image_set_id"), primary_key=True
+        String,
+        ForeignKey("image_sets.image_set_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    session_id: Mapped[uuid_lib.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("sessions.session_id", ondelete="CASCADE"),
+        nullable=False,
     )
 
     is_low_quality: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_irrelevant: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint(
+            "doctor_id", "image_set_id", "session_id", name="uq_eval_triplet"
+        ),
+    )
+
+
+class ImageEvaluation(Base):
+    """Represents a doctor's evaluation of a single image."""
+
+    __tablename__ = "image_evaluations"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+    doctor_id: Mapped[uuid_lib.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("doctors.uuid", ondelete="CASCADE"),
+        nullable=False,
+    )
+    image_id: Mapped[str] = mapped_column(
+        String, ForeignKey("images.image_id"), nullable=False
+    )
+    session_id: Mapped[uuid_lib.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("sessions.session_id"), nullable=False
+    )
+    region: Mapped[Region] = mapped_column(
+        Enum(Region), default=Region.None_, nullable=False
+    )
+    basal_score_central_left: Mapped[Optional[int]] = mapped_column(
+        Integer, nullable=True
+    )
+    basal_score_central_right: Mapped[Optional[int]] = mapped_column(
+        Integer, nullable=True
+    )
+    basal_score_cortex_left: Mapped[Optional[int]] = mapped_column(
+        Integer, nullable=True
+    )
+    basal_score_cortex_right: Mapped[Optional[int]] = mapped_column(
+        Integer, nullable=True
+    )
+    corona_score_left: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    corona_score_right: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("doctor_id", "image_id", "session_id", name="uq_image_eval"),
+    )
+
+    @validates("region")
+    def validate_region(self, key, value):
+        if value not in Region:
+            raise ValueError(f"Invalid region: {value}. Must be one of {list(Region)}.")
+        return value
+
+
+# """
+# class Conflict(Base):
+#     """Represents a conflict found in evaluations."""
+#
+#     __tablename__ = "conflicts"
+#
+#     conflict_id: Mapped[int] = mapped_column(
+#         Integer, primary_key=True, autoincrement=True
+#     )
+#     image_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+#     image_set_id: Mapped[str] = mapped_column(String, nullable=False)
+#     conflict_type: Mapped[ConflictType] = mapped_column(
+#         Enum(ConflictType), nullable=False
+#     )
+#     resolved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+#
+#     __table_args__ = (
+#         ForeignKeyConstraint(
+#             ["image_set_id", "image_id"],
+#             ["images.image_set_id", "images.image_id"],
+#             use_alter=True,
+#             name="fk_image_conflict",
+#         ),
+#     )
+# """

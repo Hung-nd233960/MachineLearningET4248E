@@ -1,5 +1,16 @@
 [MASTER]
-ignore=venv
+ignore = 
+    .venv,
+    venv,
+    __pycache__,
+    build,
+    dist,
+    .mypy_cache,
+    .pytest_cache,
+    .tox,
+    .eggs,
+    *.egg-info
+
 init-hook='import sys; sys.path.append(".")'
 load-plugins=pylint.extensions.docparams
 

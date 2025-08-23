@@ -1,15 +1,29 @@
-# tests/conftest.py
 import pytest
-from medfabric.db.database import SessionLocal, Base, engine
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from medfabric.db.models import Base
 
 
 @pytest.fixture
-def session():
-    # Make sure tables exist (only once per test run)
-    Base.metadata.create_all(bind=engine)
+def db_session(postgresql):
+    """Create a fresh DB and session per test."""
+    # Build SQLAlchemy URL from the fixture info
+    user = postgresql.info.user
+    password = postgresql.info.password or ""
+    host = postgresql.info.host
+    port = postgresql.info.port
+    dbname = postgresql.info.dbname
 
-    db = SessionLocal()
+    url = f"postgresql+psycopg://{user}:{password}@{host}:{port}/{dbname}"
+    engine = create_engine(url, echo=False)
+
+    Base.metadata.create_all(engine)  # create tables
+
+    SessionLocal = sessionmaker(bind=engine)
+    session = SessionLocal()
+
     try:
-        yield db
+        yield session
     finally:
-        db.close()
+        session.close()
+        Base.metadata.drop_all(engine)

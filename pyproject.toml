@@ -1,10 +1,8 @@
 [project]
-name = "machinelearninget4248e"
-version = "1.6.0"
+name = "MedFabric"
+version = "1.7.0"
 description = "A labeling tool for CT scans"
-authors = [
-    {name = "Hung-nd233960",email = "hung1qqo@gmail.com"}
-]
+authors = [{ name = "Hung-nd233960", email = "hung1qqo@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -21,10 +19,12 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "machinelearninget4248e"
-version = "1.6.0"
+name = "MedFabric"
+version = "1.7.0"
 package-mode = false
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
-
+pytest-postgresql = "^7.0.2"
+pydicom = "^3.0.1"
+matplotlib = "^3.10.5"
