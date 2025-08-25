@@ -1,9 +1,16 @@
 from typing import Tuple
+import uuid as uuid_lib
 import time
 import streamlit as st
 import pandas as pd
-from utils.db.models import Evaluation, ImageSet
-from utils.db.database import get_session
+from sqlalchemy.orm import Session
+from medfabric.api.errors import EmptyDatasetError
+from medfabric.api.image_set_input import get_all_image_sets, exist_any_image_set
+from medfabric.api.get_evaluated_sets import get_doctor_image_sets
+from medfabric.pages.dashboard.dashboard_config import (
+    config_self,
+    config_chosen,
+)
 
 st.set_page_config(
     page_title="Dashboard",
@@ -13,141 +20,89 @@ st.set_page_config(
 
 
 @st.cache_data
-def get_image_sets_with_evaluation_status(doctor_uuid: str, _session) -> pd.DataFrame:
+def get_image_sets_with_evaluation_status(
+    _db_session: Session, doctor_uuid: uuid_lib.UUID
+) -> Tuple[pd.DataFrame, int, int, float]:
     """
-    Return a DataFrame of all image sets with evaluation status by the doctor.
+    Retrieve a DataFrame containing image sets along with their evaluation status by a specific doctor.
 
-    Columns: scan_id, patient_id, num_images, conflicted, editing, evaluated (bool)
+    This function fetches all image sets from the database,
+    determines which of them have been evaluated by the specified doctor,
+    and constructs a DataFrame with relevant details.
+    Additionally, it calculates the total number of image sets, the number of evaluated image sets, and the percentage of evaluated image sets.
+
+    Args:
+        doctor_uuid (uuid_lib.UUID): The unique identifier of the doctor.
+
+    Returns:
+        Tuple[pd.DataFrame, int, int, float]: A tuple containing:
+            - A pandas DataFrame with columns:
+                - scan_id (str): The unique identifier of the image set.
+                - patient_id (str): The unique identifier of the patient.
+                - num_images (int): The number of images in the image set.
+                - evaluated (bool): Whether the image set has been evaluated by the doctor.
+                - edit (bool): Placeholder column, currently set to False.
+            - The number of evaluated image sets (int).
+            - The total number of image sets (int).
+            - The percentage of evaluated image sets (float), rounded to two decimal places.
+
+
     """
     # Step 1: Get image_set_ids this doctor has evaluated
-    evaluated_ids = (
-        _session.query(Evaluation.image_set_id)
-        .filter(Evaluation.doctor_id == doctor_uuid)
-        .distinct()
-        .all()
-    )
-    evaluated_ids = {row[0] for row in evaluated_ids}  # set for fast lookup
-
+    evaluated_ids = get_doctor_image_sets(_db_session, doctor_uuid)
     # Step 2: Get all image sets
-    all_image_sets = _session.query(ImageSet).all()
-
+    all_image_sets = get_all_image_sets(_db_session)
+    if all_image_sets is None:
+        raise EmptyDatasetError("No image sets found in the database.")
     # Step 3: Build DataFrame with evaluation status
     df = pd.DataFrame(
         [
             {
+                "index": imgset.index,
                 "scan_id": imgset.image_set_id,
                 "patient_id": imgset.patient_id,
                 "num_images": imgset.num_images,
-                "conflicted": imgset.conflicted,
                 "evaluated": imgset.image_set_id in evaluated_ids,
                 "edit": False,
             }
             for imgset in all_image_sets
         ]
     )
-
-    return df
-
-
-@st.cache_data
-def get_image_set_evaluation_progress(
-    doctor_uuid: str, _session
-) -> Tuple[int, int, float]:
-    """
-    Return progress info of image sets evaluated by a doctor:
-    - evaluated_count: how many image sets this doctor has evaluated
-    - total_count: total number of image sets in the system
-    - percent: evaluated / total (as float ratio, rounded to 2 decimals)
-    """
-    total_count = _session.query(ImageSet).count()
-
-    evaluated_set_ids = (
-        _session.query(Evaluation.image_set_id)
-        .filter(Evaluation.doctor_id == doctor_uuid)
-        .distinct()
-        .all()
-    )
-    evaluated_count = len(evaluated_set_ids)
-
-    percent = round(evaluated_count / total_count, 2) if total_count else 0.0
-
-    return evaluated_count, total_count, percent
+    total_count = len(df)
+    evluated_count = len(evaluated_ids)
+    percent = round(evluated_count / total_count, 2) if total_count else 0.0
+    return df, evluated_count, total_count, percent
 
 
 # Column configuration for displaying self-labeled data
-config_self = {
-    "scan_id": st.column_config.TextColumn(
-        label="Scan Type", disabled=True, pinned=True, help="Type of scan performed"
-    ),
-    "patient_id": st.column_config.TextColumn(
-        label="Patient ID",
-        disabled=True,
-        pinned=True,
-        help="Unique identifier for the patient",
-    ),
-    "num_images": st.column_config.NumberColumn(
-        label="Number of Images",
-        disabled=True,
-        pinned=True,
-        help="Number of images in the scan",
-    ),
-    "conflicted": st.column_config.CheckboxColumn(
-        label="Conflicted",
-        disabled=True,
-        help="Indicates if the scan has unresolved conflicts",
-    ),
-    "evaluated": st.column_config.CheckboxColumn(
-        label="Evaluated",
-        disabled=True,
-        help="Indicates if the scan has been evaluated by you",
-    ),
-    "edit": st.column_config.CheckboxColumn(
-        label="Evaluate", disabled=False, help="Click to evaluate or edit this scan"
-    ),
-}
 
-config_chosen = {
-    "scan_id": st.column_config.TextColumn(
-        label="Scan Type", disabled=True, pinned=True, help="Type of scan performed"
-    ),
-    "patient_id": st.column_config.TextColumn(
-        label="Patient ID",
-        disabled=True,
-        pinned=True,
-        help="Unique identifier for the patient",
-    ),
-    "num_images": st.column_config.NumberColumn(
-        label="Number of Images",
-        disabled=True,
-        pinned=True,
-        help="Number of images in the scan",
-    ),
-    "conflicted": st.column_config.CheckboxColumn(
-        label="Conflicted",
-        disabled=True,
-        help="Indicates if the scan has unresolved conflicts",
-    ),
-    "evaluated": st.column_config.CheckboxColumn(
-        label="Evaluated",
-        disabled=True,
-        help="Indicates if the scan has been evaluated by you",
-    ),
-}
 doctor_uuid = st.session_state.get("user")
-if not doctor_uuid:
+doctor_session = st.session_state.get("user_session")
+st.set_page_config(
+    page_title="Dashboard",
+    page_icon=":bar_chart:",
+    layout="wide",
+)
+db_session = st.session_state.get("db_session")
+if doctor_uuid is None:
     st.error("You must be logged in to view this information.")
+    st.stop()
+elif doctor_session is None:
+    st.error("User session not found. Please log in again.")
+    st.stop()
+elif "db_session" not in st.session_state or db_session is None:
+    st.error("Database session not found. Please restart the application.")
+    st.stop()
+elif not exist_any_image_set(db_session):
+    st.error("Error retrieving image sets. Please contact the maintainer.")
+    st.stop()
 else:
-    st.set_page_config(
-        page_title="Dashboard",
-        page_icon=":bar_chart:",
-        layout="wide",
-    )
     st.title("Dashboard")
-    with get_session() as session:
-        df = get_image_sets_with_evaluation_status(doctor_uuid, session)
-        evaluated_count, total_count, progress = get_image_set_evaluation_progress(
-            doctor_uuid, session
-        )
+
+    df, evaluated_count, total_count, progress = get_image_sets_with_evaluation_status(
+        db_session, doctor_uuid
+    )
+
     st.progress(
         value=progress,
         text=(
@@ -162,12 +117,18 @@ else:
             data=df,
             use_container_width=True,
             column_config=config_self,
-            disabled=["scan_id", "patient_id", "num_images", "conflicted", "evaluated"],
-            column_order=[
+            disabled=[
+                "index",
                 "scan_id",
                 "patient_id",
                 "num_images",
-                "conflicted",
+                "evaluated",
+            ],
+            column_order=[
+                "index",
+                "scan_id",
+                "patient_id",
+                "num_images",
                 "evaluated",
                 "edit",
             ],

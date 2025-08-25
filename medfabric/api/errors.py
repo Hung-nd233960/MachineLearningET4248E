@@ -132,3 +132,8 @@ class ImageNotFoundError(ImageError):
 
 class ImageAlreadyExistsError(ImageError):
     """Raised when an image with the same ID already exists."""
+
+
+# --- Runtime domain ---
+class EmptyDatasetError(MedFabricError):
+    """Raised when a dataset is empty or contains no valid entries."""

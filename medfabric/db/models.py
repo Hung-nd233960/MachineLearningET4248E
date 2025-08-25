@@ -14,20 +14,13 @@ from sqlalchemy import (
     DateTime,
     text,
     Identity,
-    MetaData,
 )
 from sqlalchemy.orm import (
     validates,
     mapped_column,
-    DeclarativeBase,
     Mapped,
 )
-
-metadata_obj = MetaData()
-
-
-class Base(DeclarativeBase):
-    pass
+from medfabric.db.database import Base
 
 
 # --- Enums ---
@@ -108,14 +101,16 @@ class ImageSet(Base):
 class Image(Base):
     __tablename__ = "images"
 
-    image_id: Mapped[str] = mapped_column(String, nullable=False, primary_key=True)
+    image_id: Mapped[str] = mapped_column(String, nullable=False, primary_key=False)
     image_set_id: Mapped[str] = mapped_column(
         String, ForeignKey("image_sets.image_set_id"), nullable=False
     )
     slice_index: Mapped[int] = mapped_column(Integer, nullable=False)
 
     __table_args__ = (
-        UniqueConstraint("image_set_id", "slice_index", name="uq_imageset_slice"),
+        UniqueConstraint(
+            "image_id", "image_set_id", "slice_index", name="uq_imageset_slice"
+        ),
     )
 
 

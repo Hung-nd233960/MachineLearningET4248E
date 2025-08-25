@@ -1,6 +1,6 @@
 [server]
 fileWatcherType = "none"
-headless = true
+headless = false
 port = 8501
 [client]
 showSidebarNavigation = false

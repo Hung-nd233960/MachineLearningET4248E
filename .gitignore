@@ -43,6 +43,6 @@ Thumbs.db
 .env
 .env.*
 
-ct_data/
+dev_data/
 results/
 testing_env/

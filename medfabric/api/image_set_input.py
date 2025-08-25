@@ -83,6 +83,19 @@ def get_image_set(session: Session, image_set_id: str) -> Optional[ImageSet]:
     return session.query(ImageSet).filter_by(image_set_id=image_set_id).one_or_none()
 
 
+def get_all_image_sets(session: Session) -> list[ImageSet]:
+    """
+    Retrieve all image sets from the database.
+
+    Args:
+        session (Session): SQLAlchemy DB session
+
+    Returns:
+        List of all ImageSet records
+    """
+    return session.query(ImageSet).all()
+
+
 def check_image_set_exists(session: Session, image_set_id: str) -> bool:
     """
     Check if an image set with the given ID exists.
@@ -97,3 +110,16 @@ def check_image_set_exists(session: Session, image_set_id: str) -> bool:
     return (
         session.query(ImageSet).filter_by(image_set_id=image_set_id).first() is not None
     )
+
+
+def exist_any_image_set(session: Session) -> bool:
+    """
+    Check if there is at least one image set in the database.
+
+    Args:
+        session (Session): SQLAlchemy DB session
+
+    Returns:
+        True if at least one image set exists, False otherwise
+    """
+    return session.query(ImageSet).first() is not None
