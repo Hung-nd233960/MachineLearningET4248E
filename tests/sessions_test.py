@@ -9,6 +9,7 @@ from medfabric.api.sessions import (
     list_active_sessions,
     validate_uuid,
 )
+from medfabric.api.credentials import register_doctor, get_uuid_from_username
 from medfabric.db.models import Doctors
 from medfabric.api.errors import (
     InvalidUUIDError,
@@ -89,24 +90,24 @@ def test_deactivate_session(db_session):
 
 
 def test_list_active_sessions(db_session):
-    doctor = Doctors(username="listdoc", password_hash="hashedpw")
-    db_session.add(doctor)
-    db_session.commit()
-
+    register_doctor(db_session, "activedoc", "password123")
+    uuid = get_uuid_from_username(db_session, "activedoc")
+    if uuid is None:
+        pytest.fail("Failed to retrieve UUID for 'activedoc'")
     # no sessions yet
-    active = list_active_sessions(db_session, doctor.uuid)
+    active = list_active_sessions(db_session, uuid)
     assert active == []
 
     # create two sessions
-    s1 = create_session(db_session, doctor.uuid)
-    s2 = create_session(db_session, doctor.uuid)
+    s1 = create_session(db_session, uuid)
+    create_session(db_session, uuid)
 
-    active = list_active_sessions(db_session, doctor.uuid)
+    active = list_active_sessions(db_session, uuid)
     assert len(active) == 2
 
     # deactivate one
     deactivate_session(db_session, s1.session_id)
-    active = list_active_sessions(db_session, doctor.uuid)
+    active = list_active_sessions(db_session, uuid)
     assert len(active) == 1
 
     # invalid UUID returns empty list

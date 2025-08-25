@@ -19,6 +19,7 @@ def test_add_image_set_success(db_session):
         session=db_session,
         image_set_id="set1",
         patient_id="patient123",
+        folder_path="/data/patient123/set1",
         num_images=5,
         description="Test scan",
     )
@@ -58,3 +59,29 @@ def test_add_image_set_patient_not_found(db_session):
 def test_add_image_set_invalid_num_images(db_session):
     with pytest.raises(InvalidImageSetError):
         add_image_set(db_session, "set3", 0)
+
+
+def test_get_image_set_success(db_session):
+    # Add a patient first
+    add_patient(db_session, "patient456", category="cardiology", age=60)
+    # Add an image set
+    add_image_set(
+        session=db_session,
+        image_set_id="set2",
+        patient_id="patient456",
+        num_images=10,
+        description="Heart scan",
+    )
+
+    # Retrieve the image set
+    image_set = db_session.query(ImageSet).filter_by(image_set_id="set2").first()
+    assert image_set is not None
+    assert image_set.image_set_id == "set2"
+    assert image_set.num_images == 10
+    assert image_set.patient_id == "patient456"
+    assert image_set.description == "Heart scan"
+
+
+def test_get_image_set_not_found(db_session):
+    image_set = db_session.query(ImageSet).filter_by(image_set_id="nonexistent").first()
+    assert image_set is None

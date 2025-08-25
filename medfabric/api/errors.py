@@ -79,6 +79,10 @@ class ImageSetAlreadyExistsError(ImageSetError):
     """Raised when an image set with the same ID already exists."""
 
 
+class InvalidImageSetPathError(ImageSetError):
+    """Raised when an image set has an invalid or non-existent folder path."""
+
+
 # --- Patient domain ---
 class PatientError(MedFabricError):
     """Base class for patient-related errors."""
@@ -101,5 +105,30 @@ class EvaluationError(MedFabricError):
     """Base class for evaluation-related errors."""
 
 
-class DuplicateEvaluationError(EvaluationError):
+class EvaluationAlreadyExistsError(EvaluationError):
     """Raised when an evaluation already exists for doctor/session/imageset."""
+
+
+class EvaluationNotFoundError(EvaluationError):
+    """Raised when an evaluation is not found."""
+
+
+class InvalidEvaluationError(EvaluationError):
+    """Raised when an evaluation is invalid or does not meet criteria."""
+
+
+# --- Image domain ---
+class ImageError(MedFabricError):
+    """Base class for image-related errors."""
+
+
+class InvalidImageError(ImageError):
+    """Raised when an image is invalid or does not meet criteria."""
+
+
+class ImageNotFoundError(ImageError):
+    """Raised when an image is not found."""
+
+
+class ImageAlreadyExistsError(ImageError):
+    """Raised when an image with the same ID already exists."""

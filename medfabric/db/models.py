@@ -90,8 +90,7 @@ class ImageSet(Base):
 
     index: Mapped[int] = mapped_column(
         Integer,
-        Identity(start=1, cycle=False),  # auto-increment in PostgreSQL
-        unique=True,
+        Identity(start=1, cycle=False),
         nullable=False,
         index=True,
     )
@@ -101,7 +100,7 @@ class ImageSet(Base):
         String, ForeignKey("patients.patient_id"), nullable=True
     )
     num_images: Mapped[int] = mapped_column(Integer, nullable=False)
-    folder_path: Mapped[str] = mapped_column(String, nullable=False)
+    folder_path: Mapped[str] = mapped_column(String, nullable=True)
     conflicted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
@@ -114,6 +113,10 @@ class Image(Base):
         String, ForeignKey("image_sets.image_set_id"), nullable=False
     )
     slice_index: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("image_set_id", "slice_index", name="uq_imageset_slice"),
+    )
 
 
 class Session(Base):
@@ -207,9 +210,15 @@ class ImageEvaluation(Base):
 
     @validates("region")
     def validate_region(self, key, value):
+        if key != "region":
+            return value
         if value not in Region:
             raise ValueError(f"Invalid region: {value}. Must be one of {list(Region)}.")
         return value
+
+    __table_args__ = (
+        UniqueConstraint("doctor_id", "image_id", "session_id", name="uq_image_eval"),
+    )
 
 
 # """

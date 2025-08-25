@@ -3,7 +3,8 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-CONFIG_PATH = Path("/medfabric/config.toml")
+
+CONFIG_PATH = Path.cwd() / "config.toml"
 
 
 def load_config() -> dict[str, Any]:
@@ -25,7 +26,16 @@ def get_paths() -> dict[str, str]:
 CRITERION = get_criterion()
 PATHS = get_paths()
 
-BASEL_CENTRAL_MAX = CRITERION.get("BasalCentral", 4)
-BASEL_CORTEX_MAX = CRITERION.get("BasalCortex", 3)
+BASAL_CENTRAL_MAX = CRITERION.get("BasalCentral", 4)
+BASAL_CORTEX_MAX = CRITERION.get("BasalCortex", 3)
 CORONA_MAX = CRITERION.get("CoronaRadiata", 3)
 DATA_PATH = PATHS.get("data", "/data")
+
+SCORE_LIMITS = {
+    "basal_score_central_left": BASAL_CENTRAL_MAX,
+    "basal_score_central_right": BASAL_CENTRAL_MAX,
+    "basal_score_cortex_left": BASAL_CORTEX_MAX,
+    "basal_score_cortex_right": BASAL_CORTEX_MAX,
+    "corona_score_left": CORONA_MAX,
+    "corona_score_right": CORONA_MAX,
+}

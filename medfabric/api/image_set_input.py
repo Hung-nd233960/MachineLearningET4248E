@@ -18,6 +18,7 @@ def add_image_set(
     session: Session,
     image_set_id: str,
     num_images: int,
+    folder_path: Optional[str] = None,
     patient_id: Optional[str] = None,
     description: Optional[str] = None,
 ) -> ImageSet:
@@ -28,6 +29,7 @@ def add_image_set(
         image_set_id (str): Unique identifier for the image set.
         patient_id (str): ID of the patient associated with the image set.
         num_images (int): Number of images in the set.
+        folder_path (str, optional): Path to the folder containing the images.
         description (str, optional): Description of the image set.
     Returns:
         ImageSet: The created image set record.
@@ -55,7 +57,7 @@ def add_image_set(
         image_set_id=image_set_id,
         patient_id=patient_id,
         num_images=num_images,
-        folder_path=f"/data/{patient_id}/{image_set_id}",
+        folder_path=folder_path,
         description=description,
     )
     try:
@@ -65,6 +67,20 @@ def add_image_set(
     except SQLAlchemyError as exc:
         session.rollback()
         raise DatabaseError(f"Failed to add image set: {exc}") from exc
+
+
+def get_image_set(session: Session, image_set_id: str) -> Optional[ImageSet]:
+    """
+    Retrieve an image set by its ID.
+
+    Args:
+        session (Session): SQLAlchemy DB session
+        image_set_id (str): ID of the image set to retrieve
+
+    Returns:
+        ImageSet if found, None otherwise
+    """
+    return session.query(ImageSet).filter_by(image_set_id=image_set_id).one_or_none()
 
 
 def check_image_set_exists(session: Session, image_set_id: str) -> bool:
@@ -78,4 +94,6 @@ def check_image_set_exists(session: Session, image_set_id: str) -> bool:
     Returns:
         True if exists, False otherwise
     """
-    return session.query(ImageSet).filter_by(image_set_id=image_set_id).count() > 0
+    return (
+        session.query(ImageSet).filter_by(image_set_id=image_set_id).first() is not None
+    )

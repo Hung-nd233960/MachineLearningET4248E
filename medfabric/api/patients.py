@@ -57,3 +57,17 @@ def add_patient(
     except SQLAlchemyError as exc:
         session.rollback()
         raise DatabaseError(f"Failed to add patient: {exc}") from exc
+
+
+def get_patient(session: Session, patient_id: str) -> Optional[Patient]:
+    """
+    Retrieve a patient by their ID.
+
+    Args:
+        session (Session): SQLAlchemy DB session
+        patient_id (str): ID of the patient to retrieve
+
+    Returns:
+        Patient if found, None otherwise
+    """
+    return session.query(Patient).filter_by(patient_id=patient_id).one_or_none()
