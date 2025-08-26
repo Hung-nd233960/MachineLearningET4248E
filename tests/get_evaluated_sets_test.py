@@ -43,38 +43,48 @@ def image_sets(db_session: db_Session) -> List[ImageSet]:
     set1 = add_image_set(db_session, "set1", 3)
     set2 = add_image_set(db_session, "set2", 2)
     set3 = add_image_set(db_session, "set3", 4)
+    print(
+        "Created image sets:", set1.image_set_id, set2.image_set_id, set3.image_set_id
+    )
     return [set1, set2, set3]
 
 
-@pytest.fixture
+# Warning: because images are not params of the test functions,
+# this fixture will run for every test function in this file.
+# This is intentional to ensure the database is populated correctly.
+@pytest.fixture(autouse=True)
 def images(db_session: db_Session, image_sets: List[ImageSet]) -> List[List[Image]]:
     all_imgs = []
+    print("Adding images to sets...")
     for image_set in image_sets:
         imgs = []
         for i in range(image_set.num_images):
+            print(f"Adding image {i} to set {image_set.image_set_id}")
             img = add_image(
                 db_session,
-                image_set_id=image_set.image_set_id,
-                image_id=f"image_{i}_{image_set.image_set_id}.dcm",
+                image_set_uuid=image_set.uuid,
+                image_id=f"image_{i}_{image_set.uuid}.dcm",
                 slice_index=i,
             )
+            print("Added image:", img.image_id, img.uuid)
             imgs.append(img)
         all_imgs.append(imgs)
     return all_imgs
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def set_evaluations(
     db_session: db_Session,
     doctor: List[Doctors],
     sessions: List[Session],
     image_sets: List[ImageSet],
 ):
+    print("Adding image set evaluations...")
     # Doctor 1 evaluate set 0 and 1
     eval1 = add_evaluate_image_set(
         db_session,
         doctor_id=doctor[0].uuid,
-        image_set_id=image_sets[0].image_set_id,
+        image_set_uuid=image_sets[0].uuid,
         session_id=sessions[0].session_id,
         is_low_quality=True,
         is_irrelevant=False,
@@ -82,7 +92,7 @@ def set_evaluations(
     eval2 = add_evaluate_image_set(
         db_session,
         doctor_id=doctor[0].uuid,
-        image_set_id=image_sets[1].image_set_id,
+        image_set_uuid=image_sets[1].uuid,
         session_id=sessions[0].session_id,
         is_low_quality=False,
         is_irrelevant=True,
@@ -91,7 +101,7 @@ def set_evaluations(
     eval3 = add_evaluate_image_set(
         db_session,
         doctor_id=doctor[2].uuid,
-        image_set_id=image_sets[1].image_set_id,
+        image_set_uuid=image_sets[1].uuid,
         session_id=sessions[2].session_id,
         is_low_quality=True,
         is_irrelevant=False,
@@ -99,7 +109,7 @@ def set_evaluations(
     return [eval1, eval2, eval3]
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def image_evaluations(
     db_session: db_Session,
     doctor: List[Doctors],
@@ -113,7 +123,7 @@ def image_evaluations(
         eval_ = add_evaluate_image(
             db_session,
             doctor_id=doctor[1].uuid,
-            image_id=img.image_id,
+            image_uuid=img.uuid,
             session_id=sessions[1].session_id,
             region=Region.None_,
             basal_score_cortex_left=None,
@@ -129,7 +139,7 @@ def image_evaluations(
         eval_ = add_evaluate_image(
             db_session,
             doctor_id=doctor[1].uuid,
-            image_id=img.image_id,
+            image_uuid=img.uuid,
             session_id=sessions[1].session_id,
             region=Region.BasalCentral,
             basal_score_cortex_left=1,
@@ -145,7 +155,7 @@ def image_evaluations(
         eval_ = add_evaluate_image(
             db_session,
             doctor_id=doctor[2].uuid,
-            image_id=img.image_id,
+            image_uuid=img.uuid,
             session_id=sessions[2].session_id,
             region=Region.CoronaRadiata,
             basal_score_cortex_left=None,
@@ -165,11 +175,13 @@ def test_get_doctor_image_sets(
     doctor: List[Doctors],
     image_sets: List[ImageSet],
 ):
+
     # Doctor 1 has evaluated one set
+
     sets_doc1 = get_doctor_image_sets(db_session, doctor[0].uuid)
     assert len(sets_doc1) == 2
-    assert image_sets[0].image_set_id in sets_doc1
-    assert image_sets[1].image_set_id in sets_doc1
+    assert image_sets[0].uuid in sets_doc1
+    assert image_sets[1].uuid in sets_doc1
 
 
 def test_get_doctor_images(
@@ -180,8 +192,8 @@ def test_get_doctor_images(
     # Doctor 2 has evaluated images in two sets
     sets_doc2 = get_doctor_image_sets(db_session, doctor[1].uuid)
     assert len(sets_doc2) == 2
-    assert image_sets[0].image_set_id in sets_doc2
-    assert image_sets[1].image_set_id in sets_doc2
+    assert image_sets[0].uuid in sets_doc2
+    assert image_sets[1].uuid in sets_doc2
 
 
 def test_get_doctor_mixed(
@@ -191,5 +203,5 @@ def test_get_doctor_mixed(
 ):
     sets_doc3 = get_doctor_image_sets(db_session, doctor[2].uuid)
     assert len(sets_doc3) == 2
-    assert image_sets[1].image_set_id in sets_doc3
-    assert image_sets[2].image_set_id in sets_doc3
+    assert image_sets[1].uuid in sets_doc3
+    assert image_sets[2].uuid in sets_doc3

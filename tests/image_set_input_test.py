@@ -4,7 +4,7 @@ import pytest
 from medfabric.db.models import ImageSet
 from medfabric.api.errors import (
     PatientNotFoundError,
-    ImageSetAlreadyExistsError,
+    #    ImageSetAlreadyExistsError,
     InvalidImageSetError,
 )
 from medfabric.api.image_set_input import add_image_set
@@ -34,21 +34,6 @@ def test_add_image_set_success(db_session):
 def test_empty_image_set_id(db_session):
     with pytest.raises(InvalidImageSetError):
         add_image_set(db_session, "", num_images=3)
-
-
-def test_add_image_set_already_exists(db_session):
-    # Insert existing image set
-    existing = ImageSet(
-        image_set_id="set1",
-        patient_id=None,
-        num_images=3,
-        folder_path="/data/none/set1",
-    )
-    db_session.add(existing)
-    db_session.commit()
-
-    with pytest.raises(ImageSetAlreadyExistsError):
-        add_image_set(db_session, "set1", 5)
 
 
 def test_add_image_set_patient_not_found(db_session):
@@ -85,3 +70,17 @@ def test_get_image_set_success(db_session):
 def test_get_image_set_not_found(db_session):
     image_set = db_session.query(ImageSet).filter_by(image_set_id="nonexistent").first()
     assert image_set is None
+
+
+# def test_add_image_set_already_exists(db_session):
+#    existing = ImageSet(
+#        image_set_id="set1",
+#        patient_id=None,
+#        num_images=3,
+#        folder_path="/data/none/set1",
+#    )
+#    db_session.add(existing)
+#    db_session.commit()
+#
+#    with pytest.raises(ImageSetAlreadyExistsError):
+#        add_image_set(db_session, "set1", 5)

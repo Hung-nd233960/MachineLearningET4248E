@@ -16,7 +16,10 @@ from medfabric.api.errors import (
     EvaluationAlreadyExistsError,
 )
 from medfabric.api.sessions import doctor_exists, get_session
-from medfabric.api.image_input import check_image_exists_by_id, get_set_id_from_image_id
+from medfabric.api.image_input import (
+    check_image_exists_by_uuid,
+    get_set_id_from_image_id,
+)
 from medfabric.api.image_set_evaluation_input import (
     check_set_evaluation_exists,
 )
@@ -26,7 +29,7 @@ from medfabric.api.config import SCORE_LIMITS
 def add_evaluate_image(
     session: Session,
     doctor_id: uuid_lib.UUID,
-    image_id: str,
+    image_uuid: uuid_lib.UUID,
     session_id: uuid_lib.UUID,
     region: Region = Region.None_,
     basal_score_central_left: Optional[int] = None,
@@ -45,8 +48,8 @@ def add_evaluate_image(
     if not doctor_exists(session, doctor_id):
         raise UserNotFoundError("Doctor with the given UUID does not exist.")
 
-    if not check_image_exists_by_id(session, image_id):
-        raise ImageNotFoundError("Image with the given ID does not exist.")
+    if not check_image_exists_by_uuid(session, image_uuid):
+        raise ImageNotFoundError("Image with the given UUID does not exist.")
 
     session_result = get_session(session, session_id)
     if not session_result:
@@ -61,17 +64,17 @@ def add_evaluate_image(
     if not isinstance(region, Region):
         raise InvalidEvaluationError(f"Expected Region, got {region!r}")
 
-    image_set_id = get_set_id_from_image_id(session, image_id)
-    if not image_set_id:
+    image_set_uuid = get_set_id_from_image_id(session, image_uuid)
+    if not image_set_uuid:
         raise ImageNotFoundError("Image does not belong to any image set.")
 
     # --- Duplicate evaluation checks ---
-    if check_set_evaluation_exists(session, doctor_id, image_set_id, session_id):
+    if check_set_evaluation_exists(session, doctor_id, image_set_uuid, session_id):
         raise EvaluationAlreadyExistsError(
             "An evaluation for this image set by the doctor in the given session already exists."
         )
 
-    if check_image_evaluation_exists(session, doctor_id, image_id, session_id):
+    if check_image_evaluation_exists(session, doctor_id, image_uuid, session_id):
         raise EvaluationAlreadyExistsError(
             "An evaluation for this image by the doctor in the given session already exists."
         )
@@ -100,7 +103,7 @@ def add_evaluate_image(
     # --- Create evaluation ---
     evaluation = ImageEvaluation(
         doctor_id=doctor_id,
-        image_id=image_id,
+        image_uuid=image_uuid,
         session_id=session_id,
         region=region,
         basal_score_central_left=basal_score_central_left,
@@ -124,7 +127,7 @@ def add_evaluate_image(
 def check_image_evaluation_exists(
     session: Session,
     doctor_id: uuid_lib.UUID,
-    image_id: str,
+    image_uuid: uuid_lib.UUID,
     session_id: uuid_lib.UUID,
 ) -> bool:
     """
@@ -132,16 +135,16 @@ def check_image_evaluation_exists(
 
     Args:
         session (Session): SQLAlchemy session.
-        doctor_id (uuid_lib.UUID): ID of the doctor.
-        image_id (str): ID of the image.
-        session_id (uuid_lib.UUID): ID of the session.
+        doctor_id (uuid.UUID): ID of the doctor.
+        image_uuid (uuid.UUID): ID of the image.
+        session_id (uuid.UUID): ID of the session.
 
     Returns:
         bool: True if the evaluation exists, False otherwise.
     """
     return (
         session.query(ImageEvaluation)
-        .filter_by(doctor_id=doctor_id, image_id=image_id, session_id=session_id)
+        .filter_by(doctor_id=doctor_id, image_uuid=image_uuid, session_id=session_id)
         .first()
         is not None
     )

@@ -87,8 +87,11 @@ class ImageSet(Base):
         nullable=False,
         index=True,
     )
+    uuid: Mapped[uuid_lib.UUID] = mapped_column(
+        UUID(as_uuid=True), default=uuid_lib.uuid4, nullable=False, primary_key=True
+    )
+    image_set_id: Mapped[str] = mapped_column(String)
 
-    image_set_id: Mapped[str] = mapped_column(String, primary_key=True)
     patient_id: Mapped[Optional[str]] = mapped_column(
         String, ForeignKey("patients.patient_id"), nullable=True
     )
@@ -100,16 +103,18 @@ class ImageSet(Base):
 
 class Image(Base):
     __tablename__ = "images"
-
+    uuid: Mapped[uuid_lib.UUID] = mapped_column(
+        UUID(as_uuid=True), default=uuid_lib.uuid4, nullable=False, primary_key=True
+    )
     image_id: Mapped[str] = mapped_column(String, nullable=False, primary_key=False)
-    image_set_id: Mapped[str] = mapped_column(
-        String, ForeignKey("image_sets.image_set_id"), nullable=False
+    image_set_uuid: Mapped[uuid_lib.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("image_sets.uuid"), nullable=False
     )
     slice_index: Mapped[int] = mapped_column(Integer, nullable=False)
 
     __table_args__ = (
         UniqueConstraint(
-            "image_id", "image_set_id", "slice_index", name="uq_imageset_slice"
+            "image_id", "image_set_uuid", "slice_index", name="uq_imageset_slice"
         ),
     )
 
@@ -135,21 +140,20 @@ class ImageSetEvaluation(Base):
     __tablename__ = "image_set_evaluations"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    # <-- surrogate PK (recommended for flexibility)
 
     doctor_id: Mapped[uuid_lib.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("doctors.uuid", ondelete="CASCADE"),
+        ForeignKey("doctors.uuid"),
         nullable=False,
     )
-    image_set_id: Mapped[str] = mapped_column(
-        String,
-        ForeignKey("image_sets.image_set_id", ondelete="CASCADE"),
+    image_set_uuid: Mapped[uuid_lib.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("image_sets.uuid"),
         nullable=False,
     )
     session_id: Mapped[uuid_lib.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("sessions.session_id", ondelete="CASCADE"),
+        ForeignKey("sessions.session_id"),
         nullable=False,
     )
 
@@ -158,7 +162,7 @@ class ImageSetEvaluation(Base):
 
     __table_args__ = (
         UniqueConstraint(
-            "doctor_id", "image_set_id", "session_id", name="uq_eval_triplet"
+            "doctor_id", "image_set_uuid", "session_id", name="uq_eval_triplet"
         ),
     )
 
@@ -171,11 +175,17 @@ class ImageEvaluation(Base):
 
     doctor_id: Mapped[uuid_lib.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("doctors.uuid", ondelete="CASCADE"),
+        ForeignKey(
+            "doctors.uuid",
+        ),
         nullable=False,
     )
-    image_id: Mapped[str] = mapped_column(
-        String, ForeignKey("images.image_id"), nullable=False
+    image_uuid: Mapped[uuid_lib.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "images.uuid",
+        ),
+        nullable=False,
     )
     session_id: Mapped[uuid_lib.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("sessions.session_id"), nullable=False
@@ -199,10 +209,6 @@ class ImageEvaluation(Base):
     corona_score_right: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
-    __table_args__ = (
-        UniqueConstraint("doctor_id", "image_id", "session_id", name="uq_image_eval"),
-    )
-
     @validates("region")
     def validate_region(self, key, value):
         if key != "region":
@@ -212,7 +218,7 @@ class ImageEvaluation(Base):
         return value
 
     __table_args__ = (
-        UniqueConstraint("doctor_id", "image_id", "session_id", name="uq_image_eval"),
+        UniqueConstraint("doctor_id", "image_uuid", "session_id", name="uq_image_eval"),
     )
 
 
