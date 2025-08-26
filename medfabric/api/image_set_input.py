@@ -83,6 +83,27 @@ def get_image_set(session: Session, uuid: uuid_lib.UUID) -> Optional[ImageSet]:
     return session.query(ImageSet).filter_by(uuid=uuid).first()
 
 
+def get_image_set_by_id_and_patient(
+    session: Session, image_set_id: str, patient_id: Optional[str] = None
+) -> Optional[uuid_lib.UUID]:
+    """
+    Retrieve an image set by its ID and optional patient ID.
+
+    Args:
+        session (Session): SQLAlchemy DB session
+        image_set_id (str): ID of the image set to retrieve
+        patient_id (str, optional): ID of the patient associated with the image set
+
+    Returns:
+        uuid.UUID if found, None otherwise
+    """
+    query = session.query(ImageSet).filter_by(image_set_id=image_set_id)
+    if patient_id is not None:
+        query = query.filter_by(patient_id=patient_id)
+    image_set = query.first()
+    return image_set.uuid if image_set else None
+
+
 def get_all_image_sets(session: Session) -> list[ImageSet]:
     """
     Retrieve all image sets from the database.
